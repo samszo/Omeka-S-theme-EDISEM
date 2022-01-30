@@ -1,0 +1,418 @@
+<?php
+$allowAnnotation=false;
+if ($this->userIsAllowed(\Annotate\Entity\Annotation::class, 'create')) {
+  $allowAnnotation=true;
+}
+$allowCreate=false;
+if ($this->userIsAllowed('Omeka\Entity\Resource', 'create')) {
+  $allowCreate=true;
+}
+$isAdmin = $this->identity() && $this->identity()->getRole() == "global_admin" ? true : false;
+
+$translate = $this->plugin('translate');
+//récupère les items du séminaire
+$items = $this->api()->search('items', ['item_set_id'=>7204,'sort_by'=>'dcterms:date'])->getContent();
+
+?>
+<div class="container-fluid h-75">
+  <div class="row">
+    <div class="col-4 bg-dark text-white">
+      <h4>Liste des séminaires</h4>
+      <div class="list-group" id="listeSem">
+      </div>
+    </div>
+    <div class="col-8 bg-secondary text-white p-2">
+
+      <div class="btn-toolbar mb-2" role="toolbar" aria-label="Fenêtres supplémentaires">
+        <div class="btn-group btn-group-sm me-2" role="group" aria-label="First group">
+
+          <?php if($allowCreate) : ?>
+          <input type="checkbox" class="btn-check" id="btncheckTimeliner" autocomplete="off">
+          <label class="btn btn-outline-warning" for="btncheckTimeliner">Timeliner</label>
+          <?php endif; ?>
+
+        </div>
+        <div class="btn-group btn-group-sm me-2" role="group">
+          <button id="btngdListeMedia" type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            Liste de médias
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="btngdListeMedia" id="ddmListeMedia">
+          </ul>
+        </div>
+        <div class="btn-group btn-group-sm me-2" role="group">
+          <button id="btngdListeScenario" type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            Liste des scénarios
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="btngdListeScenario" id="ddmListeScenario">
+          </ul>
+        </div>
+        <div class="btn-group btn-group-sm me-2" role="group" aria-label="Outils publics">
+          <button type="button" class="btn btn-success">Citer</button>
+          <button type="button" class="btn btn-success">Incorporer</button>
+        </div>
+        <?php if($isAdmin) : ?>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Outils experts">
+          <button type="button" class="btn btn-danger">Indexation automatique</button>
+        </div>
+        <?php endif; ?>
+
+
+      </div>
+      <div class="container">
+      <div class="row">
+        <div class="col">
+
+          <video id="visios-video" class="video-js vjs-fluid" controls preload="auto" width="400" height="300"
+
+            poster="<?php echo $this->assetUrl('images/video-poster.png'); ?>" data-setup="{}">
+            <p class="vjs-no-js">
+              Pour visionner cette vidéo, veuillez activer JavaScript et envisager de passer à une
+              navigateur Web qui
+              <a href="https://videojs.com/html5-video-support/" target="_blank">prend en charge la vidéo HTML5</a>
+            </p>
+          </video>
+        </div>
+        <div class="col bg-dark text-white">
+          <h4>Liste des annotations</h4>
+          <div class="list-group" id="listeDetails">
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+    const itemsData = <?php echo json_encode($items); ?>    
+        , urlApi = '<?php echo $this->url('api', [], true); ?>'
+        , urlAdmin = '<?php echo $this->url('admin', [], true); ?>'
+        , urlSite = '<?php echo $this->url('site', [], true); ?>'
+        , visioPlayer = videojs('visios-video');
+    let semSelect = {}, timeliner, scenario
+    , html = '<div class="loading">'
+        +'<p style="width:150px" >Merci de patienter...</p>'
+        +'</div>'
+    ,mdWait = new jBox('Modal', {
+        width: 200,
+        height: 100,
+        title: 'Patience...',
+        content: html
+    })
+    , listeDetails = d3.select('#listeDetails');
+    window.onload = initVisios;
+
+    //gestion des événements
+    d3.select('#btncheckTimeliner').on('click',function(e){
+        if(e.currentTarget.checked)showTimeliner();
+        else timeliner.hide();
+    });
+    function showTimeliner(){
+      timeliner.show();
+      animate();
+      d3.select('#btncheckTimeliner').node().checked=true;
+      /*
+      timeliner.resize(window.innerWidth,300);
+      timeliner.ajustSize();      
+      */
+    }
+
+    function checkExecute(e){
+      let check = true;
+      if(!semSelect.length){
+            let n = new jBox('Notice', {
+                content: 'Veuillez sélectionner une visios',
+                color: 'black',
+                //target: '#'+e.currentTarget.id,
+                position: {y: window.innerHeight/2, x: window.innerWidth/2}
+            });
+            e.currentTarget.checked = false;            
+            check = false;
+      }
+      return check;
+
+    }
+
+    function initVisios(){
+        //ajoute la liste des séminaires
+        showListeSeminaire();
+    }
+
+    function showListeSeminaire(){
+      let aSem = d3.select('#listeSem').selectAll('a').data(itemsData).join()
+            .append('a').attr('class','list-group-item list-group-item-action')
+            .attr("aria-current","true")
+            .on('click',selectSem)
+            .on('mouseover',function(e,d){
+              d3.select('#detailsSem'+d['o:id']).style('display','block');
+            })
+            .on('mouseout',function(e,d){
+              if(!semSelect[d['o:id']])d3.select('#detailsSem'+d['o:id']).style('display','none');
+            });
+
+        let aSemBody = aSem.append('div').attr('class','d-flex w-100 justify-content-between');
+        aSemBody.append('h5').attr('class','mb-1')
+            .html(d=>{
+                d.titre = d["bibo:shortTitle"][0]["@value"]+' '+d["dcterms:date"][0]["@value"];
+                d.adminUrl = urlAdmin+'/item/'+d['o:id'];
+                d.siteUrl = urlSite+'/item/'+d['o:id'];
+                d.fctCloseDetail = closeDetail                
+                return d.titre;
+            });
+
+        let small = aSemBody.append('small');
+        small.append('input')
+              .attr('id',d=>'btncheckDetails'+d['o:id'])
+              .attr('class','btn-check')
+              .attr('type','checkbox')
+              .on('click',function(e,d){
+                if(e.currentTarget.checked)showDetail(e,d);
+                else d.modal.close();
+                e.stopPropagation();
+            });
+        small.append('label')
+              .attr('for',d=>'btncheckDetails'+d['o:id'])
+              .attr('class','btn btn-outline-warning')
+              .html('Détails');
+        aSem.append('p')
+            .attr('id',d=>'detailsSem'+d['o:id'])
+            .style('display','none')
+            .html(d=>d['o:title']);
+    }
+
+    function closeDetail(d){
+        if(d.modal){
+            d.modal.close();
+        }
+        d3.select('#btncheckDetails'+d['o:id']).node().checked =false;
+    }
+    function selectSem(e,d){
+        //console.log(e,d);
+        let t = d3.select(e.currentTarget);
+        for (const sem in semSelect) {closeDetail(semSelect[sem]);}
+        if(t.attr('class')=="list-group-item list-group-item-action active"){
+          t.attr('class',"list-group-item list-group-item-action");
+          delete semSelect[d['o:id']];
+        }else{
+          semSelect[d['o:id']] = d;
+          t.attr('class',"list-group-item list-group-item-action active");
+        }
+        getListeMedia();
+        getListeScenario();
+    }
+    function getListeMedia(){
+      //charges les média des items sélectionnés
+      mdWait.open();      
+      let jsons = [];
+      for (const sem in semSelect) {
+        jsons.push(d3.json(urlApi+'/media?item_id='+semSelect[sem]['o:id']));
+      }
+      Promise.all(jsons).then(function(values) {
+        showListeMedia(values);
+        mdWait.close();      
+      });
+    }
+    function showListeMedia(results){
+      let medias=[], doublons=[];
+      results.forEach(ms=>{
+        ms.forEach(m=>{
+          if(!doublons[m['o:id']])medias.push(m);
+          doublons[m['o:id']]=true;
+        });          
+      });
+      d3.select('#ddmListeMedia').selectAll('li').remove();
+      d3.select('#ddmListeMedia').selectAll('li').data(medias).join().append('li').append('a')
+          .attr("class","dropdown-item")
+          .html((m,i)=>{
+            return m['o:title'] ? m['o:title'] : i+' '+m['o:media_type'];
+          })
+          .on('click',showMedia);
+      //charge le premier media
+      if(medias.length)showMedia(null,medias[0]);
+      else visioPlayer.src(null); 
+    }
+
+    function getListeScenario(){
+      //charges les scénarios des items sélectionnés
+      mdWait.open();      
+      let jsons = [];
+      for (const sem in semSelect) {
+        jsons.push(d3.json(urlSite+'/page/ajax?helper=Scenario&type=getListeFromItem&json=1&item_id='+semSelect[sem]['o:id']));
+      }
+      Promise.all(jsons).then(function(values) {
+        showListeScenario(values);
+        mdWait.close();      
+      });
+    }
+
+    function showListeScenario(results){
+      let scenarios=[], doublons=[];
+      results.forEach(r=>{
+        r.forEach(s=>{
+          if(!doublons[s['o:id']])scenarios.push(s);
+          doublons[s['o:id']]=true;
+        });          
+      });
+
+      d3.select('#ddmListeScenario').selectAll('li').remove();
+      d3.select('#ddmListeScenario').selectAll('li').data(scenarios).join().append('li').append('a')
+          .attr("class","dropdown-item")
+          .html((s,i)=>{
+            return s['o:title'];
+          })
+          .on('click',chargeScenario);
+    }
+    function chargeScenario(e,d){
+      /*récupère les indexations
+      plus nécessaire car tous est dans les details 
+      d3.json(urlSite+'/page/ajax?helper=Scenario&type=getIndexFromScenario&json=1&item_id='+scenario['o:id']).then(function(data){
+        d.indexVideo = data;
+        timeliner.load(scenario.details);
+        showTimeliner();
+      });
+      */      
+      if(!d.details)d.details=JSON.parse(d['schema:object'][0]['@value']);
+      scenario=d;
+      showTimeliner();
+      timeliner.load(scenario.details);
+
+    }
+
+    function showMedia(e,d){
+        if(visioPlayer.canPlayType(d['o:media_type'])){
+            visioPlayer.src({type: d['o:media_type'], src: d['o:original_url']});
+            d3.select('#visios-video').attr('idMedia',d['o:id']);
+            visioPlayer.ready(function() {
+               visioPlayer.play();
+               console.log('vidéo chargée')
+            });
+        }
+
+    }
+
+function animate() {
+	requestAnimationFrame(animate);
+
+	let objects = timeliner.getObjetActions()
+    , videoIndex=[];
+
+	for (const o in objects ){
+		let oa = objects[o];
+    for (const a in oa.actions){
+      let p = oa.actions[a];
+      switch (p.prop) {
+        case 'omk_videoIndex':
+          showOmkVideoIndex(o, p);					
+          break;			
+      }
+    }
+	}
+}
+
+function showOmkVideoIndex(o, p){
+  //récupère les données
+  let detail = getDetail(o,p.action);
+  //vérifie le média en cours
+  if(d3.select('#visios-video').attr('idMedia')!=detail.idTarget){
+    visioPlayer.src({type: detail.typeTarget, src: detail.urlTarget});
+    visioPlayer.ready(function() {
+      // set current time
+      visioPlayer.currentTime(p.s);
+      visioPlayer.play();
+    });  
+  }else{
+      /*PAS NECESSAIRE CAR FAIT PAS TIMELINER
+      vérifie si on est dans l'interval de l'index
+      let cTime = visioPlayer.currentTime(), interval=false;
+      if (Math.round(cTime) >= Math.round(p.s) 
+        && Math.round(cTime) <= Math.round(detail.timeEnd)) interval=true; 
+      else visioPlayer.currentTime(p.s);
+      //affiche ou masque le detail
+      if(interval)showDetail(detail);
+      else hideDetail(detail);
+      */
+      //affiche le detail
+      showDetail(detail);
+  }
+}
+function hideDetails(ids){
+  svg.selectAll("text")
+      .data(randomLetters(), d => d)
+      .join(
+        enter => enter.append("text")
+            .attr("fill", "green")
+            .attr("x", (d, i) => i * 16)
+            .attr("y", -30)
+            .text(d => d)
+          .call(enter => enter.transition(t)
+            .attr("y", 0)),
+        update => update
+            .attr("fill", "black")
+            .attr("y", 0)
+          .call(update => update.transition(t)
+            .attr("x", (d, i) => i * 16)),
+        exit => exit
+            .attr("fill", "brown")
+          .call(exit => exit.transition(t)
+            .attr("y", 30)
+            .remove())
+      );
+  listeDetails.select('#detailIndex_'+d.idObj).style('display','none');
+}
+
+function showDetail(d){
+  let detail =  listeDetails.select('#detailIndex_'+d.idObj);
+  //si le détail existe on l'affiche et on sort
+  if(detail.size()){
+    detail.style('display','block');
+    return;
+  }
+
+  let aSem = listeDetails.append('a').attr('class','list-group-item list-group-item-action')
+            .attr("id",'detailIndex_'+d.idObj)
+            .attr("aria-current","true");
+            /*
+            .on('click',console.log)
+            .on('mouseover',function(e,d){
+              d3.select('#detailsSem'+d['o:id']).style('display','block');
+            })
+            .on('mouseout',function(e,d){
+              if(!semSelect[d['o:id']])d3.select('#detailsSem'+d['o:id']).style('display','none');
+            });
+            */
+
+  let aSemBody = aSem.append('div').attr('class','d-flex w-100 justify-content-between');
+  aSemBody.append('h6').attr('class','mb-1')
+      .style('color',d._color)
+      .html(d.category);
+
+  let small = aSemBody.append('small').html(d.creator);
+  aSem.append('p').html(d.text);
+}
+
+function getIndex(id,key){
+  return scenario.indexVideo[key].filter(i=>i["o:id"]==id)[0];
+}
+function getDetail(id,key){
+  let l = scenario.details.layers.filter(l=>l.name==key)[0]; 
+  return l.values.filter(v=>v.idObj==id)[0];
+}
+
+
+
+
+</script>
+<script type="module">
+
+import { Timeliner } from '<?php echo $this->assetUrl('js/timeliner/timeliner.js'); ?>'
+
+var actions = {};
+
+// initialize timeliner
+timeliner = new Timeliner(actions);
+timeliner.hide();
+
+</script>

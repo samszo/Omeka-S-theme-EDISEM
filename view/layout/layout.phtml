@@ -1,0 +1,81 @@
+<?php
+$json = $this->params()->fromQuery('json') ? $this->params()->fromQuery('json') : $this->params()->fromPost('json', '');
+if($json){
+    echo $this->content;
+    return ;
+}
+
+$nav = $site->publicNav();
+$container = $nav->getContainer();
+$activePage = $nav->findActive($container);
+
+$translate = $this->plugin('translate');
+$this->headMeta()->setCharset('utf-8');
+$this->headMeta()->appendName('description', "EDItorialisation de SEMinaire");
+
+$this->headMeta()->appendName('author', "Samuel Szoniecky");
+$this->headMeta()->appendName('viewport', 'width=device-width, initial-scale=1');
+
+$this->headTitle("EDItorialisation de SEMinaire")->setSeparator(' · ');
+
+$this->headScript()->appendFile($this->assetUrl('js/d3.min.js'));
+$this->headScript()->appendFile($this->assetUrl('js/d3-queue.v3.min.js'));
+$this->headScript()->appendFile($this->assetUrl('js/anime.min.js'));
+$this->headScript()->appendFile($this->assetUrl('js/geoLoc.js'));
+$this->headScript()->appendFile($this->assetUrl('js/bootstrap.bundle.min.js'));
+$this->headScript()->appendFile($this->assetUrl('js/amazelogo.js'));
+$this->headScript()->appendFile($this->assetUrl('js/all.js'));//fontawesome
+$this->headScript()->appendFile($this->assetUrl('js/jquery-3.6.0.min.js'));
+$this->headScript()->appendFile($this->assetUrl('js/jBox.all.min.js'));
+$this->headScript()->appendFile($this->assetUrl('js/edisem.js'));
+$this->headScript()->appendFile($this->assetUrl('js/video.min.js'));
+
+
+$this->headLink()->appendStylesheet($this->assetUrl('css/bootstrap.min.css'));
+$this->headLink()->appendStylesheet($this->assetUrl('css/cover.css'));
+$this->headLink()->appendStylesheet($this->assetUrl('css/edicem.css'));
+$this->headLink()->appendStylesheet($this->assetUrl('css/video-js.min.css'));
+$this->headLink()->appendStylesheet($this->assetUrl('css/jBox.all.min.css'));
+$this->headLink()->prependStylesheet($this->assetUrl('css/user-bar.css', 'Omeka'));
+
+//pour l'autocompletion
+$this->headLink(array('rel'  => 'manifest','href' => $this->assetUrl('../manifest.json')));
+
+
+
+$this->trigger('view.layout');
+
+?>
+<?php echo $this->doctype(); ?>
+<?php echo $this->htmlElement('html')->setAttribute('lang', $this->lang()); ?>
+<?php echo $this->htmlElement('html')->setAttribute('class', "h-100"); ?>
+
+    <head>
+        <?php echo $this->headMeta(); ?>
+        <link rel="shortcut icon" href="<?php echo $this->assetUrl('img/icons/favicon.ico'); ?>" type="image/x-icon" />
+        <?php echo $this->headTitle(); ?>
+        <?php echo $this->headLink(); ?>
+        <?php echo $this->headStyle(); ?>
+        <?php echo $this->headScript(); ?>
+
+    </head>
+    <body class="d-flex h-100 text-center text-white bg-dark">
+    
+    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+        <?php echo $this->partial('edicem/header-info', ['site'=>$site]);?>
+    
+      <main id='mainContent' class="px-3">
+
+        <?php 
+            echo $this->content; 
+        ?>            
+
+      </main>
+    
+      <?php echo $this->partial('edicem/footer');?>
+
+    </div>
+    
+            
+      </body>
+    </html>

@@ -1,0 +1,15 @@
+#listeSem {
+  height: 600px;
+  overflow-y: scroll;
+}
+#listeDetails {
+  height: 500px;
+  overflow-y: scroll;
+}
+#logoMazePetit{
+  height: 60px;
+  width: 400px;
+}
+.loading{
+  color: black;
+}
