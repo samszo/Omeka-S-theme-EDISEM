@@ -12,87 +12,41 @@ $isAdmin = $this->identity() && $this->identity()->getRole() == "global_admin" ?
 $translate = $this->plugin('translate');
 //récupère les items du séminaire
 $items = $this->api()->search('items', ['item_set_id'=>7204,'sort_by'=>'dcterms:date'])->getContent();
+//récupère la liste des catégories
+$categories = $this->api()->search('items', ['item_set_id'=>8062,'sort_by'=>'dcterms:title'])->getContent();
+
+$actant = [];
+if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$this->identity()]); 
+
 
 ?>
 <div class="container-fluid h-75">
   <div class="row">
     <div class="col-4 bg-dark text-white">
-      <h4>Liste des séminaires</h4>
-      <div class="list-group" id="listeSem">
-      </div>
+      <?php echo $this->partial('edicem/nv-visios-droite', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);?>
     </div>
     <div class="col-8 bg-secondary text-white p-2">
-
-      <div class="btn-toolbar mb-2" role="toolbar" aria-label="Fenêtres supplémentaires">
-        <div class="btn-group btn-group-sm me-2" role="group" aria-label="First group">
-
-          <?php if($allowCreate) : ?>
-          <input type="checkbox" class="btn-check" id="btncheckTimeliner" autocomplete="off">
-          <label class="btn btn-outline-warning" for="btncheckTimeliner">Timeliner</label>
-          <?php endif; ?>
-
-        </div>
-        <div class="btn-group btn-group-sm me-2" role="group">
-          <button id="btngdListeMedia" type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
-            aria-expanded="false">
-            Liste de médias
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="btngdListeMedia" id="ddmListeMedia">
-          </ul>
-        </div>
-        <div class="btn-group btn-group-sm me-2" role="group">
-          <button id="btngdListeScenario" type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
-            aria-expanded="false">
-            Liste des scénarios
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="btngdListeScenario" id="ddmListeScenario">
-          </ul>
-        </div>
-        <div class="btn-group btn-group-sm me-2" role="group" aria-label="Outils publics">
-          <button type="button" class="btn btn-success">Citer</button>
-          <button type="button" class="btn btn-success">Incorporer</button>
-        </div>
-        <?php if($isAdmin) : ?>
-        <div class="btn-group btn-group-sm" role="group" aria-label="Outils experts">
-          <button type="button" class="btn btn-danger">Indexation automatique</button>
-        </div>
-        <?php endif; ?>
-
-
-      </div>
+      <?php echo $this->partial('edicem/tb-visios', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);?>
       <div class="container">
-      <div class="row">
-        <div class="col">
-
-          <video id="visios-video" class="video-js vjs-fluid" controls preload="auto" width="400" height="300"
-
-            poster="<?php echo $this->assetUrl('images/video-poster.png'); ?>" data-setup="{}">
-            <p class="vjs-no-js">
-              Pour visionner cette vidéo, veuillez activer JavaScript et envisager de passer à une
-              navigateur Web qui
-              <a href="https://videojs.com/html5-video-support/" target="_blank">prend en charge la vidéo HTML5</a>
-            </p>
-          </video>
-        </div>
-        <div class="col bg-dark text-white">
-          <h4>Liste des annotations</h4>
-          <div class="list-group" id="listeDetails">
-          </div>
-        </div>
-      </div>
+        <div id="mediaCards" class="card-group"></div>
       </div>
     </div>
   </div>
 </div>
 
-
 <script>
-    const itemsData = <?php echo json_encode($items); ?>    
+    const itemsSem = <?php echo json_encode($items); ?>    
+
+        , itemsCat = <?php echo json_encode($categories); ?>    
+
+        , actant = <?php echo json_encode($actant); ?>    
+
         , urlApi = '<?php echo $this->url('api', [], true); ?>'
         , urlAdmin = '<?php echo $this->url('admin', [], true); ?>'
         , urlSite = '<?php echo $this->url('site', [], true); ?>'
-        , visioPlayer = videojs('visios-video');
-    let semSelect = {}, timeliner, scenario
+        , urlPosterVideo="<?php echo $this->assetUrl('images/video-poster.png'); ?>"
+    ;
+    let semSelect = {}, timeliner, scenario, currentSource, currentMedia, mediaCards={}, videoIndex=[]
     , html = '<div class="loading">'
         +'<p style="width:150px" >Merci de patienter...</p>'
         +'</div>'
@@ -105,12 +59,125 @@ $items = $this->api()->search('items', ['item_set_id'=>7204,'sort_by'=>'dcterms:
     , listeDetails = d3.select('#listeDetails');
     window.onload = initVisios;
 
-    //gestion des événements
+    function initVisios(){
+        //ajoute la liste des séminaires
+        showListeSeminaire();
+        //ajoute la liste des catégories
+        setCategoriesRadio();        
+    }
+
+
+    //gestion des boutons
     d3.select('#btncheckTimeliner').on('click',function(e){
         if(e.currentTarget.checked)showTimeliner();
         else timeliner.hide();
+    });   
+    d3.select('#btnIMajout').on('click',function(e){
+        saveIndex();
+    });       
+    d3.select('#btnIMmodif').on('click',function(e){
+        saveIndex(true);
     });
-    function showTimeliner(){
+    d3.select('#inputIMdebStop').on('click',function(e){
+      d3.select('#inputIMdebPlay').style('display','inline');
+      d3.select('#inputIMdebStop').style('display','none');
+    });
+    d3.select('#inputIMdebPlay').on('click',function(e){
+      d3.select('#inputIMdebPlay').style('display','none');
+      d3.select('#inputIMdebStop').style('display','inline');
+    });
+    d3.select('#inputIMfinPlay').on('click',function(e){
+      d3.select('#inputIMfinPlay').style('display','none');
+      d3.select('#inputIMfinStop').style('display','inline');
+    });
+    d3.select('#inputIMfinStop').on('click',function(e){
+      d3.select('#inputIMfinPlay').style('display','inline');
+      d3.select('#inputIMfinStop').style('display','none');
+    });
+           
+
+    //gestion du slider debut fin
+    var sliderIndexStartEnd = document.getElementById('slider-startend');
+    noUiSlider.create(sliderIndexStartEnd, {
+      // Create two timestamps to define a range.
+      range: {
+          min: 0,
+          max: 100
+      },
+      // tooltips: [true, true],
+      // Two more timestamps indicate the handle starting positions.
+      start: [0, 100],
+      pips: {
+            mode: 'range',
+            density: 3
+        }
+    });
+    var dateValues = [
+        document.getElementById('inputIMdeb'),
+        document.getElementById('inputIMfin')
+    ];
+    sliderIndexStartEnd.noUiSlider.on('update', function (values, handle) {
+        dateValues[handle].value = values[handle];
+    });
+
+  //fonction spécifiques à la page  
+  function saveIndex(modif){
+    if(!currentSource){
+      let n = new jBox('Notice', {
+                content: 'Veuillez sélectionner un séminaire',
+                color: 'black',
+                //target: '#'+e.currentTarget.id,
+                position: {y: window.innerHeight/2, x: window.innerWidth/2}
+            });
+      return;
+    }
+    if(!currentMedia){
+      let n = new jBox('Notice', {
+                content: 'Veuillez sélectionner un média',
+                color: 'black',
+                //target: '#'+e.currentTarget.id,
+                position: {y: window.innerHeight/2, x: window.innerWidth/2}
+            });
+      return;
+    }
+
+    //récupère les données saisies
+    let c, cats = document.getElementsByName('radioCat');  
+    for (var check of cats) {  
+      if (check.checked)c=check.value;  
+    }  
+    let dataIndex = {
+      'dcterms:title':document.getElementById('inputIMtitre').value,
+      'dcterms:description':document.getElementById('inputIMdesc').value,
+      'schema:category':c,//document.getElementsByName('radioCat').value,
+      'oa:start':document.getElementById('inputIMdeb').value,
+      'oa:end':document.getElementById('inputIMfin').value,
+      'schema:color':document.getElementById('inputIMcolor').value,
+      'oa:hasSource':currentSource['o:id'],
+      'oa:hasTarget':currentMedia['o:id'],
+      'dcterms:creator':actant['o:id'],
+    }
+    if(modif)dataIndex.idIndex=document.getElementById('idIndex').value;
+    //enregistre dans la base
+    $.ajax({
+            type: 'POST',
+            dataType: 'json',
+            url:urlSite+'/page/ajax?helper=Scenario&type=saveIndex&json=1',
+            data: dataIndex
+        }).done(function (data) {
+          console.log(data);
+          document.getElementById('idIndex').value=data['o:id']; 
+          document.getElementById('btnIMmodif').disabled=false;                  
+        })
+        .fail(function (e) {
+          console.log(e);
+        })
+        .always(function(){
+            console.log('indexation enregistrée');
+        });
+  }
+
+  function showTimeliner(){
       timeliner.show();
       animate();
       d3.select('#btncheckTimeliner').node().checked=true;
@@ -136,13 +203,35 @@ $items = $this->api()->search('items', ['item_set_id'=>7204,'sort_by'=>'dcterms:
 
     }
 
-    function initVisios(){
-        //ajoute la liste des séminaires
-        showListeSeminaire();
+    function setCategoriesRadio(){
+      let fc = d3.select('#listeIndexCategory').selectAll('div').data(itemsCat).enter()
+            .append('div').attr('class','form-check');
+      fc.append('input')
+            .attr("class","form-check-input")
+            .attr("type","radio")
+            .attr("name","radioCat")
+            .attr("value",c=>c['o:id'])
+            .attr("checked",(c,i)=>i==0 ? true : false)
+            .attr("id",c=>{
+              return "radioCat"+c['o:id']
+            })
+            .on('click',function(e,c){
+              //change lma couleur du picker
+              d3.select('#inputIMcolor').node().value = c['schema:color'][0]['@value'];
+            });
+      fc.append('label')
+            .attr("class","form-check-label")
+            .attr("for",c=>"radioCat"+c['o:id'])
+            .html(c=> c['o:title']);
+      fc.append('span')
+            .style("background-color",c=>c['schema:color'][0]['@value'])
+            .style("margin-left","8px")
+            .html('&nbsp;&nbsp;&nbsp;');
+            
     }
 
     function showListeSeminaire(){
-      let aSem = d3.select('#listeSem').selectAll('a').data(itemsData).join()
+      let aSem = d3.select('#listeSem').selectAll('a').data(itemsSem).join()
             .append('a').attr('class','list-group-item list-group-item-action')
             .attr("aria-current","true")
             .on('click',selectSem)
@@ -191,6 +280,7 @@ $items = $this->api()->search('items', ['item_set_id'=>7204,'sort_by'=>'dcterms:
     }
     function selectSem(e,d){
         //console.log(e,d);
+        currentSource=false;
         let t = d3.select(e.currentTarget);
         for (const sem in semSelect) {closeDetail(semSelect[sem]);}
         if(t.attr('class')=="list-group-item list-group-item-action active"){
@@ -199,6 +289,7 @@ $items = $this->api()->search('items', ['item_set_id'=>7204,'sort_by'=>'dcterms:
         }else{
           semSelect[d['o:id']] = d;
           t.attr('class',"list-group-item list-group-item-action active");
+          currentSource = d;
         }
         getListeMedia();
         getListeScenario();
@@ -216,6 +307,8 @@ $items = $this->api()->search('items', ['item_set_id'=>7204,'sort_by'=>'dcterms:
       });
     }
     function showListeMedia(results){
+      currentMedia = false;
+      d3.select("#mediaCards").selectAll("div").remove();
       let medias=[], doublons=[];
       results.forEach(ms=>{
         ms.forEach(m=>{
@@ -230,9 +323,10 @@ $items = $this->api()->search('items', ['item_set_id'=>7204,'sort_by'=>'dcterms:
             return m['o:title'] ? m['o:title'] : i+' '+m['o:media_type'];
           })
           .on('click',showMedia);
-      //charge le premier media
+      /*charge le premier media
       if(medias.length)showMedia(null,medias[0]);
       else visioPlayer.src(null); 
+      */
     }
 
     function getListeScenario(){
@@ -282,6 +376,7 @@ $items = $this->api()->search('items', ['item_set_id'=>7204,'sort_by'=>'dcterms:
     }
 
     function showMedia(e,d){
+        /*
         if(visioPlayer.canPlayType(d['o:media_type'])){
             visioPlayer.src({type: d['o:media_type'], src: d['o:original_url']});
             d3.select('#visios-video').attr('idMedia',d['o:id']);
@@ -290,107 +385,160 @@ $items = $this->api()->search('items', ['item_set_id'=>7204,'sort_by'=>'dcterms:
                console.log('vidéo chargée')
             });
         }
+        */
+        d3.select("#mediaCards").selectAll("div").remove();
+        currentMedia = d;
+        createMediaCard({'idTarget':d['o:id'],'typeTarget':d['o:media_type'], 'urlTarget':d['o:original_url']});       
 
     }
 
 function animate() {
 	requestAnimationFrame(animate);
 
-	let objects = timeliner.getObjetActions()
-    , videoIndex=[];
-
+	let objects = timeliner.getObjetActions(), s;
+  videoIndex.forEach(v=>v.a='d');
 	for (const o in objects ){
 		let oa = objects[o];
     for (const a in oa.actions){
       let p = oa.actions[a];
+      s = p.s;
       switch (p.prop) {
         case 'omk_videoIndex':
-          showOmkVideoIndex(o, p);					
+          joinVideoIndex(o,p.action);					
           break;			
       }
     }
 	}
+  if(videoIndex.length)showVideoIndex(s);
 }
 
-function showOmkVideoIndex(o, p){
-  //récupère les données
-  let detail = getDetail(o,p.action);
-  //vérifie le média en cours
-  if(d3.select('#visios-video').attr('idMedia')!=detail.idTarget){
-    visioPlayer.src({type: detail.typeTarget, src: detail.urlTarget});
-    visioPlayer.ready(function() {
-      // set current time
-      visioPlayer.currentTime(p.s);
-      visioPlayer.play();
-    });  
-  }else{
-      /*PAS NECESSAIRE CAR FAIT PAS TIMELINER
-      vérifie si on est dans l'interval de l'index
-      let cTime = visioPlayer.currentTime(), interval=false;
-      if (Math.round(cTime) >= Math.round(p.s) 
-        && Math.round(cTime) <= Math.round(detail.timeEnd)) interval=true; 
-      else visioPlayer.currentTime(p.s);
-      //affiche ou masque le detail
-      if(interval)showDetail(detail);
-      else hideDetail(detail);
-      */
-      //affiche le detail
-      showDetail(detail);
+function joinVideoIndex(id, a){
+  if(videoIndex[id])videoIndex[id].a='u';
+  else {
+    videoIndex[id]=getDetail(id, a);
+    videoIndex[id].a='c';
+    //vérifie s'il faut créer le média
+    if(!mediaCards[videoIndex[id].idTarget])createMediaCard(videoIndex[id]);
+    mediaCards[videoIndex[id].idTarget].index.push(videoIndex[id]);
   }
 }
+
+
+function showVideoIndex(s){
+  for (const mc in mediaCards) {
+    let d = mediaCards[mc];
+    if(d.ready){
+      if(parseInt(d.video.currentTime())!=parseInt(s)){
+        d.video.currentTime(s);
+      }else{
+        if(!d.video.paused())d.video.pause();
+      }
+    }
+    //affiche les details
+    showDetails(d);
+  }
+}
+
+
+function createMediaCard(d){
+
+  let m={};
+  m.card = d3.select("#mediaCards").append("div")
+      .attr('id','cardVideo'+d.idTarget)
+      .attr("class", "card text-white bg-dark");
+  m.idVideo = "visiosVideo"+d.idTarget;
+  m.card.append('video')
+    .attr("id", m.idVideo)
+    .attr("class", "video-js vjs-fluid card-img-top")
+    .attr("controls", "true")
+    .attr("preload", "auto")
+    .attr("width", "400")
+    .attr("height", "300")
+    .attr("poster", urlPosterVideo);
+  m.ready=false;
+  m.video=videojs(m.idVideo)
+  m.video.src({type: d.typeTarget, src: d.urlTarget});
+  m.video.ready(function() {
+      let playPromise = m.video.play();
+      if (playPromise !== undefined) {
+        playPromise.then(_ => {
+          m.ready=true;
+          //met à jour les extrémité du slider
+          sliderIndexStartEnd.noUiSlider.updateOptions({
+              range: {
+                  'min': 0,
+                  'max': m.video.duration()
+              }
+          });        
+
+        })
+        .catch(error => {
+          console.log(error)
+        });
+      }
+    });
+  m.video.on('timeupdate', (e, d) => {
+    //met à jour les poignées du slider
+    let stopDeb = d3.select('#inputIMdebPlay').style('display')
+      , stopFin = d3.select('#inputIMfinPlay').style('display');
+    if(stopDeb=='none' && stopFin=='none')return;
+    let ct = m.video.currentTime()
+      , posis = sliderIndexStartEnd.noUiSlider.get();
+    if(stopDeb!='none')posis[0]=ct;
+    if(stopFin!='none')posis[1]=ct;
+    sliderIndexStartEnd.noUiSlider.updateOptions({
+          start: posis,        
+      });        
+   });
+
+  m.body = m.card.append('div')
+    .attr("class", "card-body");
+  m.body.append('h5')
+    .attr("class", "card-title").html("Annotations");
+  m.idListeDetails="listeDetails"+d.idTarget;
+  m.listeDetails = m.body.append('div')
+    .attr("class", "list-group")
+    .attr("id",d.idListeDetails);
+  m.index=[];
+  mediaCards[d.idTarget]=m;
+}
+function getChildrenIds(s){
+  let ids = [];
+  if (s.hasChildNodes()) {
+    s.childNodes.forEach(c=>ids.push(c.id));
+  }
+  return ids;
+}
+function notContainedCard(arr) {
+    return function arrNotContains(e) {
+        return arr.indexOf('cardVideo'+e[0]) === -1;
+    };
+  }
+
 function hideDetails(ids){
-  svg.selectAll("text")
-      .data(randomLetters(), d => d)
-      .join(
-        enter => enter.append("text")
-            .attr("fill", "green")
-            .attr("x", (d, i) => i * 16)
-            .attr("y", -30)
-            .text(d => d)
-          .call(enter => enter.transition(t)
-            .attr("y", 0)),
-        update => update
-            .attr("fill", "black")
-            .attr("y", 0)
-          .call(update => update.transition(t)
-            .attr("x", (d, i) => i * 16)),
-        exit => exit
-            .attr("fill", "brown")
-          .call(exit => exit.transition(t)
-            .attr("y", 30)
-            .remove())
-      );
   listeDetails.select('#detailIndex_'+d.idObj).style('display','none');
 }
 
-function showDetail(d){
-  let detail =  listeDetails.select('#detailIndex_'+d.idObj);
-  //si le détail existe on l'affiche et on sort
-  if(detail.size()){
-    detail.style('display','block');
-    return;
-  }
-
-  let aSem = listeDetails.append('a').attr('class','list-group-item list-group-item-action')
-            .attr("id",'detailIndex_'+d.idObj)
+function showDetails(d){
+  d.listeDetails.selectAll("a")
+    .data(d.index.filter(i=>i.a=='c' || i.a=='u'))
+    .join(
+      enter => {
+        let aSem = enter.append('a').attr('class','list-group-item list-group-item-action')
+            .attr("id",d=>'detailIndex_'+d.idObj)
             .attr("aria-current","true");
-            /*
-            .on('click',console.log)
-            .on('mouseover',function(e,d){
-              d3.select('#detailsSem'+d['o:id']).style('display','block');
-            })
-            .on('mouseout',function(e,d){
-              if(!semSelect[d['o:id']])d3.select('#detailsSem'+d['o:id']).style('display','none');
-            });
-            */
+        let aSemBody = aSem.append('div').attr('class','d-flex w-100 justify-content-between');
+        aSemBody.append('h6').attr('class','mb-1')
+            .style('color',d=>d._color)
+            .html(d=>d.category);
 
-  let aSemBody = aSem.append('div').attr('class','d-flex w-100 justify-content-between');
-  aSemBody.append('h6').attr('class','mb-1')
-      .style('color',d._color)
-      .html(d.category);
-
-  let small = aSemBody.append('small').html(d.creator);
-  aSem.append('p').html(d.text);
+        let small = aSemBody.append('small').html(d=>d.creator);
+        aSem.append('p').html(d=>d.text);
+      },
+      update => update
+          .style("border-color", "blue"),
+      exit => exit.remove()
+    );
 }
 
 function getIndex(id,key){

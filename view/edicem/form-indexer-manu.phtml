@@ -1,0 +1,40 @@
+<!-- formulaire pour l'indexation manuelle' -->
+<div class="row g-3 bg-dark text-white text-start" id="mdIndexManu">
+    <input id="idIndex" type="hidden" value="">
+    <div class="col-md-12">
+        <label for="inputIMtitre" class="form-label">Titre</label>
+        <input type="text" class="form-control" id="inputIMtitre" />
+    </div>
+    <div class="col-md-12">
+        <label for="inputIMdesc" class="form-label">Description</label>
+        <textarea id="inputIMdesc" class="form-control" rows="3"></textarea>
+    </div>
+    <div class="col-md-12" id="listeIndexCategory">
+    </div>
+    <div class="col-md-12 px-4 mb-5">
+        <div id="slider-startend" ></div>
+    </div>
+    <div class="col-md-4">
+        <label for="inputIMdeb" class="form-label">Début</label>
+        <span class="btnIco" id="inputIMdebStop" style="color:red;display:none"><i class="far fa-stop-circle" ></i></span>        
+        <span class="btnIco" id="inputIMdebPlay" style="color:green;"><i class="far fa-play-circle" ></i></span>        
+        <input type="text" class="form-control" id="inputIMdeb">
+    </div>
+    <div class="col-md-4">
+        <label for="inputIMfin" class="form-label">Fin</label>
+        <span class="btnIco" id="inputIMfinStop" style="color:red;display:none"><i class="far fa-stop-circle" ></i></span>        
+        <span class="btnIco" id="inputIMfinPlay" style="color:green;"><i class="far fa-play-circle" ></i></span>        
+        <input type="text" class="form-control" id="inputIMfin">
+    </div>
+    <div class="col-4">
+        <label for="inputIMcolor" class="form-label">Couleur</label>
+        <input type="color" class="form-control form-control-color" id="inputIMcolor" value="black"
+            title="Choisir une couleur">
+    </div>
+    <div class="col-6">
+        <button id='btnIMajout' class="btn btn-danger">Ajouter</button>
+    </div>
+    <div class="col-6">
+        <button id='btnIMmodif' class="btn btn-warning" disabled >Modifier</button>
+    </div>
+</div>

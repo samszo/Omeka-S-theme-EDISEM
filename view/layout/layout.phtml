@@ -27,16 +27,18 @@ $this->headScript()->appendFile($this->assetUrl('js/amazelogo.js'));
 $this->headScript()->appendFile($this->assetUrl('js/all.js'));//fontawesome
 $this->headScript()->appendFile($this->assetUrl('js/jquery-3.6.0.min.js'));
 $this->headScript()->appendFile($this->assetUrl('js/jBox.all.min.js'));
-$this->headScript()->appendFile($this->assetUrl('js/edisem.js'));
+$this->headScript()->appendFile($this->assetUrl('js/nouislider.min.js'));
 $this->headScript()->appendFile($this->assetUrl('js/video.min.js'));
+$this->headScript()->appendFile($this->assetUrl('js/edisem.js'));
 
 
+$this->headLink()->prependStylesheet($this->assetUrl('css/user-bar.css', 'Omeka'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/bootstrap.min.css'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/cover.css'));
-$this->headLink()->appendStylesheet($this->assetUrl('css/edicem.css'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/video-js.min.css'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/jBox.all.min.css'));
-$this->headLink()->prependStylesheet($this->assetUrl('css/user-bar.css', 'Omeka'));
+$this->headLink()->prependStylesheet($this->assetUrl('css/nouislider.min.css'));
+$this->headLink()->appendStylesheet($this->assetUrl('css/edicem.css'));
 
 //pour l'autocompletion
 $this->headLink(array('rel'  => 'manifest','href' => $this->assetUrl('../manifest.json')));

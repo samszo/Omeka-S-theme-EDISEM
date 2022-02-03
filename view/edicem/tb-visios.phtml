@@ -1,0 +1,45 @@
+<?php
+$isAdmin = $this->vars('isAdmin');
+$allowCreate = $this->vars('allowCreate');
+
+?>
+<div class="btn-toolbar mb-2" role="toolbar" aria-label="Fenêtres supplémentaires">
+    <div class="btn-group btn-group-sm me-2" role="group" aria-label="First group">
+
+        <?php if($allowCreate) : ?>
+        <input type="checkbox" class="btn-check" id="btncheckTimeliner" autocomplete="off">
+        <label class="btn btn-outline-warning" for="btncheckTimeliner">Timeliner</label>
+        <?php endif; ?>
+
+    </div>
+    <div class="btn-group btn-group-sm me-2" role="group">
+        <button id="btngdListeMedia" type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            Liste de médias
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="btngdListeMedia" id="ddmListeMedia">
+        </ul>
+    </div>
+    <div class="btn-group btn-group-sm me-2" role="group">
+        <button id="btngdListeScenario" type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            Liste des scénarios
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="btngdListeScenario" id="ddmListeScenario">
+        </ul>
+    </div>
+    <div class="btn-group btn-group-sm me-2" role="group" aria-label="Outils publics">
+        <button type="button" class="btn btn-success">Citer</button>
+        <button type="button" class="btn btn-success">Incorporer</button>
+    </div>
+    <!--
+    <?php if($isAdmin) : ?>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Outils experts">
+        <input type="checkbox" class="btn-check" id="btngdIndexManu" autocomplete="off">
+        <label class="btn btn-outline-danger" for="btngdIndexManu">Indexer</label>
+        <button type="button" class="btn btn-danger">Auto Indexer</button>
+    </div>
+    <?php endif; ?>
+    -->
+
+</div>
