@@ -182,7 +182,7 @@ function timeAtLayer(layer, t) {
 			// only exception is on the last KF, where we display tween from prev entry
 			if (i === il - 1) {
 				return {
-					// index: i,
+					idEntry: i-1,
 					entry: prev_entry,
 					tween: prev_entry.tween,
 					can_tween: il > 1,
@@ -194,7 +194,7 @@ function timeAtLayer(layer, t) {
 				};
 			}
 			return {
-				// index: i,
+				idEntry: i,
 				entry: entry,
 				tween: entry.tween,
 				can_tween: il > 1,
@@ -209,6 +209,7 @@ function timeAtLayer(layer, t) {
 			// possibly a tween
 			if (!prev_entry.tween) { // or if value is none
 				return {
+					idEntry: i-1,					
 					value: prev_entry.value,
 					tween: false,
 					entry: prev_entry,
@@ -230,6 +231,7 @@ function timeAtLayer(layer, t) {
 			var new_value = prev_entry.value + Tweens[tween](k) * value_diff;
 
 			return {
+				idEntry: i-1,					
 				entry: prev_entry,
 				value: new_value,
 				tween: prev_entry.tween,

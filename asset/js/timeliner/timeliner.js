@@ -71,6 +71,16 @@ function Timeliner(target) {
 		undo_manager.save(new UndoState(data, 'Loaded'), true);
 	});
 
+	this.getLayer = function(key, val){
+		return layers.filter(l=>l[key]==val);
+	};
+	this.addTrack = function(layer,entry){
+		var v = utils.findTimeinLayer(layer, entry.time);
+		layer.values.splice(v, 0, entry);
+		return v;
+	};
+
+	this.fctKeyframe = false;
 	dispatcher.on('keyframe', function(layer, value) {
 		var index = layers.indexOf(layer);
 
@@ -81,11 +91,13 @@ function Timeliner(target) {
 		// console.log('layer', layer, value);
 
 		if (typeof(v) === 'number') {
-			layer.values.splice(v, 0, {
+			let o = {
 				time: t,
 				value: value,
-				_color: '#' + (Math.random() * 0xffffff | 0).toString(16)
-			});
+				_color: getAleaColor()
+			};
+			if(me.fctKeyframe)me.fctKeyframe(layer,v,o);
+			else layer.values.splice(v, 0, o);
 
 			undo_manager.save(new UndoState(data, 'Add Keyframe'));
 		} else {
@@ -99,7 +111,26 @@ function Timeliner(target) {
 
 	});
 
-	dispatcher.on('keyframe.move', function(layer, value) {
+	function getAleaColor(){
+		var opacity = 0.5;//on force la transparence
+		return 'rgba(' + Math.floor(Math.random() * 255) 
+			+ ',' + Math.floor(Math.random() * 255)
+			+ ',' + Math.floor(Math.random() * 255)
+			 + ',' + opacity + ')';
+	}
+
+
+
+	this.fctKeyframeMove = false;
+	dispatcher.on('keyframe.move', function(idLayer, t) {
+		if(idLayer){
+			var v = utils.findTimeinLayer(layers[idLayer], t);
+			if(v.object){
+				v.object.idLayer = idLayer;
+				v.object.idEntry = v.index;
+				if(me.fctKeyframeMove)me.fctKeyframeMove(layers[idLayer],v);		
+			}
+		}
 		undo_manager.save(new UndoState(data, 'Move Keyframe'));
 	});
 
@@ -206,6 +237,7 @@ function Timeliner(target) {
 	var start_play = null,
 		loop_play = false,
 		played_from = 0; // requires some more tweaking
+	this.isPlaying = function(){return start_play}; 
 
 	dispatcher.on('controls.toggle_play', function() {
 		if (start_play) {
@@ -251,6 +283,7 @@ function Timeliner(target) {
 	});
 
 	var currentTimeStore = data.get('ui:currentTime');
+	this.currentTimeStore = currentTimeStore;
 	dispatcher.on('time.update', setCurrentTime);
 
 	dispatcher.on('totalTime.update', function(value) {
@@ -277,11 +310,13 @@ function Timeliner(target) {
 	}
 
 	dispatcher.on('target.notify', function(layer, value) {
-		if (target) target[layer.id] = {'name':layer.name, 'value':value};
+		if (target){
+			target[layer.id] = {'name':layer.name, 'layer':layer, 'value':value};
+		} 
 	});
 
 	dispatcher.on('update.scale', function(v) {
-		console.log('range', v);
+		//console.log('range', v);
 		data.get('ui:timeScale').value = v;
 
 		timeline.repaint();
@@ -426,7 +461,11 @@ function Timeliner(target) {
 
 		repaintAll();
 	}
+	this.updateTrack = function updateTrack(path, value){
+		data.setValue(path, value);
+	};
 
+	this.repaintAll = repaintAll;
 	function repaintAll() {
 		var content_height = layers.length * Settings.LINE_HEIGHT;
 		scrollbar.setLength(Settings.TIMELINE_SCROLL_HEIGHT / content_height);
@@ -819,8 +858,10 @@ function Timeliner(target) {
 
 		layers = layer_store.value;
 		layers.push(layer);
+		layer.idLayer = layers.indexOf(layer);
 
 		layer_panel.setState(layer_store);
+		return layer;
 	}
 	this.addLayer = addLayer;
 
@@ -855,8 +896,12 @@ function Timeliner(target) {
 	this.hide = function() {
 		root.style.display='none';
 	};
-	this.show = function() {
+	this.show = function(snapType) {
 		root.style.display='block';
+		//snap la fenêtre
+		widget.setSnapType(snapType);
+		widget.resizeEdges();
+
 	};
 	this.resize = resize;
 	this.ajustSize = function(){
@@ -878,6 +923,8 @@ function Timeliner(target) {
 					if(!objActions[idObj].actions[aName]){
 						objActions[idObj].actions[aName]={
 								'action':action.name
+								, 'idLayer':action.layer.idLayer
+								, 'value':action['value']
 								, 'prop':action['value'].prop
 								,'text':action['value'].text == 'null' ? '' : action['value'].text  
 								,'val':action['value'].value
@@ -939,7 +986,8 @@ function Timeliner(target) {
 
 	this.getValues = getValueRanges;
 
-	/* Integrate pane into docking window */
+	/* Integrate pane into docking window 
+	*/
 	var widget = new DockingWindow(pane, ghostpane)
 	widget.allowMove(false);
 	widget.resizes.do(resize)

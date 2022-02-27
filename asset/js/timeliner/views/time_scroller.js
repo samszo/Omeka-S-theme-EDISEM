@@ -147,7 +147,7 @@ function ScrollCanvas(dispatcher, data) {
 			var w = width - 2 * MARGINS;
 			var scrollTime = (draggingx + e.dx) / w * totalTime;
 
-			console.log(scrollTime, draggingx, e.dx, scroller.grip_length, w);
+			//console.log(scrollTime, draggingx, e.dx, scroller.grip_length, w);
 
 			if (draggingx  + e.dx + scroller.grip_length > w) return;
 

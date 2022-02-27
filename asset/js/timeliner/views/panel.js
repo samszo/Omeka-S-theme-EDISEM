@@ -65,7 +65,8 @@ function TimelinePanel(data, dispatcher) {
 	var layers = data.get('layers').value;
 
 	this.scrollTo = function(s, y) {
-		scrollTop = s * Math.max(layers.length * LINE_HEIGHT - SCROLL_HEIGHT, 0);
+		scrollTop = s * (layer_scroll.scrollHeight - layer_scroll.clientHeight);
+		//scrollTop = s * Math.max(layers.length * LINE_HEIGHT - SCROLL_HEIGHT, 0);
 		repaint();
 	};
 
@@ -94,7 +95,7 @@ function TimelinePanel(data, dispatcher) {
 	utils.style(scroll_canvas.dom, {
 		position: 'absolute',
 		top: '0px',
-		left: '10px'
+		left: '-10px'
 	});
 
 	scroll_canvas.uses(new ScrollCanvas(dispatcher, data));
@@ -580,7 +581,7 @@ function TimelinePanel(data, dispatcher) {
 		}
 	}, function up(e) {
 		if (mouseDownThenMove) {
-			dispatcher.fire('keyframe.move');
+			dispatcher.fire('keyframe.move',y_to_track(e.offsety), x_to_time(e.offsetx));
 		}
 		else {
 			dispatcher.fire('time.update', x_to_time(e.offsetx));

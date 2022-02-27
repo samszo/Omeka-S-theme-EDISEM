@@ -65,7 +65,7 @@ function LayerView(layer, dispatcher) {
 		dispatcher.fire('text.update', layer, text.dom.value);
 	});
 
-	var height = (LayoutConstants.LINE_HEIGHT - 1);
+	var height = (LayoutConstants.LINE_HEIGHT - 2);
 
 	var keyframe_button = document.createElement('button');
 	keyframe_button.innerHTML = '&#9672;'; // '&diams;' &#9671; 9679 9670 9672
@@ -125,15 +125,12 @@ function LayerView(layer, dispatcher) {
 
 	// Solo
 	var solo_toggle = new ToggleButton('S');
-	dom.appendChild(solo_toggle.dom);
-
 	solo_toggle.onClick = function() {
 		dispatcher.fire('action:solo', layer, solo_toggle.pressed);
 	}
 
 	// Mute
 	var mute_toggle = new ToggleButton('M');
-	dom.appendChild(mute_toggle.dom);
 	mute_toggle.onClick = function() {
 		dispatcher.fire('action:mute', layer, mute_toggle.pressed);
 	}
@@ -156,15 +153,18 @@ function LayerView(layer, dispatcher) {
 		}
 	});
 	style(trash.dom, button_styles, { marginRight: '2px' });
+	
+	dom.appendChild(solo_toggle.dom);
+	dom.appendChild(mute_toggle.dom);
 	dom.appendChild(trash.dom);
-
 	dom.appendChild(label);
 	dom.appendChild(keyframe_button);
-	dom.appendChild(number.dom);
-	dom.appendChild(dropdown);
-	dom.appendChild(idObj.dom);
-	dom.appendChild(prop.dom);
-	dom.appendChild(text.dom);
+	//pour simplifier l'interface on n'ajoute pas les élements du layer
+	//dom.appendChild(number.dom);
+	//dom.appendChild(dropdown);
+	//dom.appendChild(idObj.dom);
+	//dom.appendChild(prop.dom);
+	//dom.appendChild(text.dom);
 
 	utils.style(dom, {
 		textAlign: 'left',
@@ -172,7 +172,7 @@ function LayerView(layer, dispatcher) {
 		borderBottom: '1px solid ' + Theme.b,
 		top: 0,
 		left: 0,
-		height: (LayoutConstants.LINE_HEIGHT - 1 ) + 'px',
+		height: (LayoutConstants.LINE_HEIGHT) + 'px',
 		color: Theme.c
 	});
 

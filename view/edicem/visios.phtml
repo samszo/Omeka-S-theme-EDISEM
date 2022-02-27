@@ -23,7 +23,7 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
 <div class="container-fluid h-75">
   <div class="row">
     <div class="col-4 bg-dark text-white">
-      <?php echo $this->partial('edicem/nv-visios-droite', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);?>
+      <?php echo $this->partial('edicem/nv-visios-gauche', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);?>
     </div>
     <div class="col-8 bg-secondary text-white p-2">
       <?php echo $this->partial('edicem/tb-visios', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);?>
@@ -178,13 +178,10 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
   }
 
   function showTimeliner(){
-      timeliner.show();
+      timeliner.show('dock-bottom-sam');
       animate();
       d3.select('#btncheckTimeliner').node().checked=true;
-      /*
-      timeliner.resize(window.innerWidth,300);
-      timeliner.ajustSize();      
-      */
+     
     }
 
     function checkExecute(e){
@@ -388,7 +385,12 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
         */
         d3.select("#mediaCards").selectAll("div").remove();
         currentMedia = d;
-        createMediaCard({'idTarget':d['o:id'],'typeTarget':d['o:media_type'], 'urlTarget':d['o:original_url']});       
+        createMediaCard({'idTarget':d['o:id'],'typeTarget':d['o:media_type'], 'urlTarget':d['o:original_url']});
+        if(!mediaCards[d['o:id']].index.length){
+          //récupère les indexations
+
+        }else showDetails(mediaCards[d['o:id']]);
+       
 
     }
 
@@ -442,13 +444,41 @@ function showVideoIndex(s){
 
 function createMediaCard(d){
 
+
   let m={};
   m.card = d3.select("#mediaCards").append("div")
       .attr('id','cardVideo'+d.idTarget)
-      .attr("class", "card text-white bg-dark");
+      .attr("class", "card text-white bg-dark");      
+
+  /*carte vidéo haut annotation bas
+  appendVideoToMediaCard(m, d, m.card.append('video'));
+  m.body = m.card.append('div')
+    .attr("class", "card-body");
+  */
+  
+  //carte annotation droite vidéo gauche
+  let rowCard = m.card.append('div').attr('class','row g-0');  
+  let colAnno = rowCard.append('div').attr('class','col-md-6');  
+  m.body = colAnno.append('div')
+    .attr("class", "card-body");  
+  let colVideo = rowCard.append('div').attr('class','col-md-6');  
+  appendVideoToMediaCard(m, d, colVideo.append('video'));
+
+  //construction du body
+  m.body.append('h5')
+    .attr("class", "card-title").html("Annotations");
+  m.idListeDetails="listeDetails"+d.idTarget;
+  m.listeDetails = m.body.append('div')
+    .attr("class", "list-group listeDetails")
+    .attr("id",d.idListeDetails);
+  m.index=[];
+  mediaCards[d.idTarget]=m;
+
+
+}
+function appendVideoToMediaCard(m, d, v){
   m.idVideo = "visiosVideo"+d.idTarget;
-  m.card.append('video')
-    .attr("id", m.idVideo)
+  v.attr("id", m.idVideo)
     .attr("class", "video-js vjs-fluid card-img-top")
     .attr("controls", "true")
     .attr("preload", "auto")
@@ -490,17 +520,7 @@ function createMediaCard(d){
           start: posis,        
       });        
    });
-
-  m.body = m.card.append('div')
-    .attr("class", "card-body");
-  m.body.append('h5')
-    .attr("class", "card-title").html("Annotations");
-  m.idListeDetails="listeDetails"+d.idTarget;
-  m.listeDetails = m.body.append('div')
-    .attr("class", "list-group")
-    .attr("id",d.idListeDetails);
-  m.index=[];
-  mediaCards[d.idTarget]=m;
+  
 }
 function getChildrenIds(s){
   let ids = [];

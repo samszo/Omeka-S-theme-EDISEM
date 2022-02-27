@@ -7,6 +7,8 @@ const SNAP_LEFT_EDGE = 'snap-left-edge'
 const SNAP_RIGHT_EDGE = 'snap-right-edge'
 const SNAP_BOTTOM_EDGE = 'snap-bottom-edge'
 const SNAP_DOCK_BOTTOM = 'dock-bottom'
+const SNAP_BOTTOM_SAM = 'dock-bottom-sam'
+
 
 function setBounds(element, x, y, w, h) {
 	element.style.left = x + 'px';
@@ -78,6 +80,10 @@ function DockingWindow(pane, ghostpane) {
 	var allowDragging = true;
 	var snapType;
 
+	this.setSnapType = function(st) {
+		snapType = st;
+	}
+
 	this.allowMove = function(allow) {
 		allowDragging = allow;
 	}
@@ -106,6 +112,7 @@ function DockingWindow(pane, ghostpane) {
 	}
 
 	this.resizes = new Do();
+	this.resizeEdges = resizeEdges;
 
 	/* DOM Utils */
 	function hideGhostPane() {
@@ -321,6 +328,12 @@ function DockingWindow(pane, ghostpane) {
 			top = 0
 			break;
 		case SNAP_BOTTOM_EDGE:
+			width = window.innerWidth;
+			height = window.innerHeight / 3;
+			left = 0
+			top = window.innerHeight - height
+			break;
+		case SNAP_BOTTOM_SAM:
 			width = window.innerWidth;
 			height = window.innerHeight / 3;
 			left = 0

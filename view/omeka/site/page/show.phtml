@@ -35,6 +35,9 @@ if ($activePage):
     if($page->slug()=='visios'){
         echo $this->partial('edicem/visios');
     }
+    if($page->slug()=='scenarios'){
+        echo $this->partial('edicem/scenarios');
+    }
     ?>
 </div>
 <?php $this->trigger('view.show.after'); ?>

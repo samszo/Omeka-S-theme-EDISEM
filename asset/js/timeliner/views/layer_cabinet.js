@@ -175,12 +175,10 @@ function LayerCabinet(data, dispatcher) {
 	style(titreAnimation, {
 		margin: '4px',
 	});
-	operations_div.appendChild(titreAnimation);
 
 	// open _alt
 	var file_open = new IconButton(16, 'folder_open_alt', 'Open', dispatcher);
 	style(file_open.dom, op_button_styles);
-	operations_div.appendChild(file_open.dom);
 
 	function populateOpen() {
 		while (dropdown.length) {
@@ -284,7 +282,6 @@ function LayerCabinet(data, dispatcher) {
 	// save
 	var save = new IconButton(16, 'save', 'Save', dispatcher);
 	style(save.dom, op_button_styles);
-	operations_div.appendChild(save.dom);
 	save.onClick(function() {
 		dispatcher.fire('save');
 	});
@@ -292,7 +289,6 @@ function LayerCabinet(data, dispatcher) {
 	// save as
 	var save_as = new IconButton(16, 'paste', 'Save as', dispatcher);
 	style(save_as.dom, op_button_styles);
-	operations_div.appendChild(save_as.dom);
 	save_as.onClick(function() {
 		dispatcher.fire('save_as');
 	});
@@ -300,14 +296,12 @@ function LayerCabinet(data, dispatcher) {
 	// download json (export)
 	var download_alt = new IconButton(16, 'download_alt', 'Download / Export JSON to file', dispatcher);
 	style(download_alt.dom, op_button_styles);
-	operations_div.appendChild(download_alt.dom);
 	download_alt.onClick(function() {
 		dispatcher.fire('export');
 	});
 
 	var upload_alt = new IconButton(16, 'upload_alt', 'Load from file', dispatcher);
 	style(upload_alt.dom, op_button_styles);
-	operations_div.appendChild(upload_alt.dom);
 	upload_alt.onClick(function() {
 		dispatcher.fire('openfile');
 	});
@@ -315,10 +309,18 @@ function LayerCabinet(data, dispatcher) {
 	var span = document.createElement('span');
 	span.style.width = '20px';
 	span.style.display = 'inline-block';
+
+
+	//operations_div.appendChild(titreAnimation);
+	//operations_div.appendChild(file_open.dom);
+	//operations_div.appendChild(save.dom);
+	//operations_div.appendChild(save_as.dom);
+	//operations_div.appendChild(upload_alt.dom);
+	operations_div.appendChild(download_alt.dom);
 	operations_div.appendChild(span);
 
-	operations_div.appendChild(undo_button.dom);
-	operations_div.appendChild(redo_button.dom);
+	//operations_div.appendChild(undo_button.dom);
+	//operations_div.appendChild(redo_button.dom);
 	operations_div.appendChild(document.createElement('br'));
 
 	// Cloud Download / Upload edit pencil
