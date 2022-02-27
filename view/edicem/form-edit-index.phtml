@@ -58,7 +58,7 @@ var sgtMedias = new Bloodhound({
     },
   //prefetch: 'http://localhost/omk_arcanes/api/media',
   remote: {
-    url: 'http://localhost/omk_arcanes/api/media?property[0][property]=1&property[0][type]=in&property[0][text]=%QUERY&sort_by=title',
+    url: urlApi+'/media?property[0][property]=1&property[0][type]=in&property[0][text]=%QUERY&sort_by=title',
     wildcard: '%QUERY'
   }
 });

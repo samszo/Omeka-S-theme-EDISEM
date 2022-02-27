@@ -18,6 +18,21 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
 
 
 ?>
+<script>
+
+const itemsScenario = <?php echo json_encode($scenarios); ?>    
+
+    , actant = <?php echo json_encode($actant); ?>    
+
+    , urlApi = '<?php echo $this->url('api', [], true); ?>'
+    , urlAdmin = '<?php echo $this->url('admin', [], true); ?>'
+    , urlSite = '<?php echo $this->url('site', [], true); ?>'
+    , urlPosterVideo="<?php echo $this->assetUrl('images/video-poster.png'); ?>"
+;
+
+window.onload = initVisios;
+</script>
+
 <div class="container-fluid h-75">
   <div class="row">
     <div class="col bg-secondary text-white p-2">
@@ -30,20 +45,6 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
   </div>
 </div>
 
-<script>
-
-    const itemsScenario = <?php echo json_encode($scenarios); ?>    
-    
-        , actant = <?php echo json_encode($actant); ?>    
-
-        , urlApi = '<?php echo $this->url('api', [], true); ?>'
-        , urlAdmin = '<?php echo $this->url('admin', [], true); ?>'
-        , urlSite = '<?php echo $this->url('site', [], true); ?>'
-        , urlPosterVideo="<?php echo $this->assetUrl('images/video-poster.png'); ?>"
-    ;
-
-    window.onload = initVisios;
-</script>
 <script type="module">
 
 import { Timeliner } from '<?php echo $this->assetUrl('js/timeliner/timeliner.js'); ?>'
