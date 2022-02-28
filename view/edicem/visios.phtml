@@ -46,17 +46,6 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
         , urlSite = '<?php echo $this->url('site', [], true); ?>'
         , urlPosterVideo="<?php echo $this->assetUrl('images/video-poster.png'); ?>"
     ;
-    let semSelect = {}, timeliner, scenario, currentSource, currentMedia, mediaCards={}, videoIndex=[]
-    , html = '<div class="loading">'
-        +'<p style="width:150px" >Merci de patienter...</p>'
-        +'</div>'
-    ,mdWait = new jBox('Modal', {
-        width: 200,
-        height: 100,
-        title: 'Patience...',
-        content: html
-    })
-    , listeDetails = d3.select('#listeDetails');
     window.onload = initVisios;
 
     function initVisios(){

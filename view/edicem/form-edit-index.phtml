@@ -27,21 +27,36 @@
         </div>
     </div>
     <div class="row">
-        <div class="col">
+        <div class="col-3">
             <label for="inputIMdeb" class="form-label">Début</label>
             <input type="number" class="form-control" id="inputIMdeb" aria-describedby="inputIMdebHelp">
             <div id="inputIMdebHelp" class="form-text"></div>
         </div>
-        <div class="col">
+        <div class="col-3">
             <label for="inputIMfin" class="form-label">Fin</label>
             <input type="number" class="form-control" id="inputIMfin" aria-describedby="inputIMfinHelp">
             <div id="inputIMfinHelp" class="form-text"></div>
         </div>
-        <div class="col">
+        <div class="col-6">
+          <div class="row">
+          <div class="col">
             <label for="inputIMcolor" class="form-label">Couleur</label>
             <input type="color" class="form-control form-control-color" id="inputIMcolor" value="black"
                 title="Choisir une couleur" aria-describedby="inputIMcolorHelp">
-            <div id="inputIMcolorHelp" class="form-text"></div>
+
+          </div>
+          <div class="col">
+          <label for="inputIMopa" class="form-label">Opacité</label>
+          <input type="range" class="form-range" min="0" max="1" step="0.1" value="0.5" id="inputIMopa">
+            
+          </div>
+
+          </div>
+          <div class="row">
+          <div id="inputIMcolorHelp" class="form-text"></div>
+
+          </div>
+          
         </div>
     </div>
     <div class="d-flex justify-content-between mt-2">
@@ -104,12 +119,10 @@ $('#choixMedia .typeahead').bind('typeahead:select', function(ev, suggestion) {
 });
 
 $('#inputIMcolor').on('change',function(){
-  //on force la transparence
-  let opacity = 0.5
-  , color = $("#inputIMcolor").val()
-  , rgbaCol = 'rgba(' + parseInt(color.slice(-6, -4), 16) + ',' + parseInt(color.slice(-4, -2), 16) + ',' + parseInt(color.slice(-2), 16) 
-    + ',' + opacity + ')';
-  document.getElementById('inputIMcolorHelp').innerHTML = rgbaCol;
+  document.getElementById('inputIMcolorHelp').innerHTML = getColorRGBA($("#inputIMopa").val(), $("#inputIMcolor").val());
+})
+$('#inputIMopa').on('change',function(){
+  document.getElementById('inputIMcolorHelp').innerHTML = getColorRGBA($("#inputIMopa").val(), $("#inputIMcolor").val());
 })
 $('#inputIMdeb').on('change',function(){
   document.getElementById('inputIMdebHelp').innerHTML = secondsToHms(document.getElementById('inputIMdeb').value);
@@ -117,5 +130,8 @@ $('#inputIMdeb').on('change',function(){
 $('#inputIMfin').on('change',function(){
   document.getElementById('inputIMfinHelp').innerHTML = secondsToHms(document.getElementById('inputIMfin').value);
 })
-
+function getColorRGBA(opa, color){
+  return 'rgba(' + parseInt(color.slice(-6, -4), 16) + ',' + parseInt(color.slice(-4, -2), 16) + ',' + parseInt(color.slice(-2), 16) 
+    + ',' + opa + ')'
+}
 </script>

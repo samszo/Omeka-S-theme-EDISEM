@@ -1,8 +1,9 @@
 let semSelect = {},
     timeliner, scenario, mediaCards = {},
-    videoIndex = [],
+    currentSource, currentMedia, videoIndex = [],
     mdWait, mdEditIndex,
     listeDetails = d3.select('#listeDetails');
+
 
 function initVisios() {
     showListeScenario();
@@ -117,7 +118,7 @@ function showTimeliner() {
 
 function showListeScenario() {
     d3.select('#ddmListeScenario').selectAll('li').remove();
-    d3.select('#ddmListeScenario').selectAll('li').data(itemsScenario).join().append('li').append('a')
+    d3.select('#ddmListeScenario').selectAll('li').data(itemsScenario).enter().append('li').append('a')
         .attr("class", "dropdown-item")
         .html((s, i) => {
             return s['o:title'];
