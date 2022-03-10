@@ -672,12 +672,16 @@ function Timeliner(target) {
 	// add layer
 	var plus = new IconButton(12, 'plus', 'New Layer', dispatcher);
 	plus.onClick(function() {
-		var name = prompt('Layer name?');
-		addLayer(name);
 
-		undo_manager.save(new UndoState(data, 'Layer added'));
-
-		repaintAll();
+		var name="New Layer"
+		if(me.fctAddLayer){
+			me.fctAddLayer();
+		}else{
+			name = prompt('Layer name ?',name);
+			addLayer(name);
+			undo_manager.save(new UndoState(data, 'Layer added'));
+			repaintAll();	
+		}
 	});
 	style(plus.dom, button_styles);
 	bottom_right.appendChild(plus.dom);
@@ -853,13 +857,14 @@ function Timeliner(target) {
 		right.style.left = Settings.LEFT_PANE_WIDTH + 'px';
 	}
 
-	function addLayer(name) {
+	function addLayer(name, id) {
+		
 		var layer = new LayerProp(name);
 
 		layers = layer_store.value;
 		layers.push(layer);
 		layer.idLayer = layers.indexOf(layer);
-
+		layer.id = id;
 		layer_panel.setState(layer_store);
 		return layer;
 	}

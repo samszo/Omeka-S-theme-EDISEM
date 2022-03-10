@@ -1,0 +1,59 @@
+<!-- formulaire pour ajouter une couche -->
+<div class="container bg-dark text-white p-2" style="display:none" id="mdAjoutLayer">
+    <input id="ajoutLayerIdCat" type="hidden" value="">
+    <input id="ajoutLayerLblCat" type="hidden" value="">    
+    <div class="row">
+        <div class="col-12">
+            <div id="choixCategory">
+                <label class="form-label">Choisir / ajouter une catégorie à la couche</label>
+                <input class="typeahead" type="text" placeholder="">
+            </div>
+        </div>
+        <div class="col-12">
+            <label for="ajoutLayerDescCategory" class="form-label">Description</label>
+            <textarea id="ajoutLayerDescCategory" class="form-control" rows="2"></textarea>
+        </div>
+    </div>
+    <div class="d-flex justify-content-between mt-2">
+        <button id='btnAjoutCategory' style="display:none" class="btn btn-danger" >Ajouter</button>
+        <button id='btnSelectCategory' style="display:none" class="btn btn-danger" >Choisir</button>
+    </div>
+</div>
+<script>
+var sgtCategory = new Bloodhound({
+  datumTokenizer: Bloodhound.tokenizers.obj.whitespace('o:title'),
+  queryTokenizer: Bloodhound.tokenizers.whitespace,
+  identify: function(obj) { 
+      return obj['o:id']; 
+    },
+  remote: {
+    url: urlApi+'/items?resource_template_id=9&property[0][property]=1&property[0][type]=in&property[0][text]=%QUERY&sort_by=title',
+    wildcard: '%QUERY'
+  }
+});
+
+$('#choixCategory .typeahead').typeahead(null, {
+  name: 'omk-category',
+  display: 'o:title',
+  source: sgtCategory,
+  templates: {
+    empty: function(context){
+        document.getElementById('btnSelectCategory').style.display='none';  
+        document.getElementById('btnAjoutCategory').style.display='block';
+        document.getElementById('ajoutLayerDescCategory').value='';          
+        document.getElementById('ajoutLayerLblCat').value=context.query;
+        document.getElementById('ajoutLayerIdCat').value=0;
+    },
+    suggestion: Handlebars.compile('<div><strong>{{o:title}}</strong> – {{o:id}}</div>')
+  }  
+});
+$('#choixCategory .typeahead').bind('typeahead:select', function(ev, suggestion) {
+  document.getElementById('ajoutLayerIdCat').value=suggestion["o:id"];
+  document.getElementById('ajoutLayerLblCat').value=suggestion["o:title"];
+  let desc = suggestion["dcterms:description"] ? suggestion["dcterms:description"][0]["@value"] : "";
+  document.getElementById('ajoutLayerDescCategory').value=desc;          
+  document.getElementById('btnSelectCategory').style.display='block';  
+  document.getElementById('btnAjoutCategory').style.display='none';  
+});
+
+</script>

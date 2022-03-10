@@ -13,7 +13,7 @@ $translate = $this->plugin('translate');
 //récupère la liste des scénarios
 $scenarios = $this->api()->search('items', ['resource_class_id'=>1085,'sort_by'=>'dcterms:date'])->getContent();
 
-$actant = [];
+$actant = false;
 if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$this->identity()]); 
 
 
@@ -38,6 +38,7 @@ window.onload = initVisios;
     <div class="col bg-secondary text-white p-2">
       <?php echo $this->partial('edicem/tb-scenarios', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);?>
       <?php echo $this->partial('edicem/form-edit-index', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);?>
+      <?php echo $this->partial('edicem/form-ajout-layer');?>
       <div class="container">
         <div id="mediaCards" class="card-group"></div>
       </div>
@@ -55,5 +56,6 @@ var actions = {};
 timeliner = new Timeliner(actions);
 timeliner.hide();
 timeliner.fctKeyframe = addKeyframe;
-timeliner.fctKeyframeMove = changeKeyframe
+timeliner.fctKeyframeMove = changeKeyframe;
+timeliner.fctAddLayer = addLayer;
 </script>

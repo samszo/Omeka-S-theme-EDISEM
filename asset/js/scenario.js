@@ -1,8 +1,11 @@
 let semSelect = {},
     timeliner, scenario, mediaCards = {},
     currentSource, currentMedia, videoIndex = [],
-    mdWait, mdEditIndex,
-    listeDetails = d3.select('#listeDetails');
+    mdWait, mdEditIndex, mdAjoutLayer,
+    listeDetails = d3.select('#listeDetails'),
+    htmlError = '<p>ERREUR !</p>'
+    +'<p><i class="fa-solid fa-bug"></i><i class="fa-solid fa-bug"></i><i class="fa-solid fa-bug"></i></p>'
+    +'<p>Merci de contacter le responsable</>';
 
 
 function initVisios() {
@@ -20,6 +23,33 @@ function initVisios() {
     d3.select('#btnIMmodif').on('click', function (e) {
         saveIndex(true);
     });
+    d3.select('#btnAjoutCategory').on('click', function (e) {
+        addCategory();
+    });
+    d3.select('#btnSelectCategory').on('click', function (e) {        
+        selectCategory();
+    });
+    
+    mdAjoutLayer = new jBox('Modal', {
+        width: 200,
+        height: 100,
+        title: 'Ajouter une couche',
+        width: 480,
+        height: 260,
+        theme: 'TooltipDark',
+        overlay: false,
+        content: $('#mdAjoutLayer'),
+        draggable: 'title',
+        repositionOnOpen: false,
+        repositionOnContent: false,
+        onOpen: function() {
+            document.getElementById('ajoutLayerIdCat').value="";
+            document.getElementById('ajoutLayerLblCat').value="";
+            $('#choixCategory .typeahead').val("");
+            document.getElementById('ajoutLayerDescCategory').value="";            
+        },        
+    });
+
     mdWait = new jBox('Modal', {
         width: 200,
         height: 100,
@@ -37,11 +67,49 @@ function initVisios() {
         content: $('#mdEditIndex'),
         draggable: 'title',
         repositionOnOpen: false,
-        repositionOnContent: false
+        repositionOnContent: false,
     });
 }
 
-
+function selectCategory(){
+    let idGroup = document.getElementById('ajoutLayerIdCat').value;
+    let lblLayer = document.getElementById('ajoutLayerLblCat').value;
+    idGroup += '_'+actant['o:id'];
+    lblLayer += ' : '+actant['o:title'];
+    timeliner.addLayer(lblLayer,idGroup);
+    timeliner.repaintAll();
+    mdAjoutLayer.close();
+}
+function addCategory(){
+    let layerTitle = document.getElementById('ajoutLayerLblCat').value;
+    let layerDesc = document.getElementById('ajoutLayerDescCategory').value;
+    //enregistre dans la base
+    $.ajax({
+        type: 'POST',
+        dataType: 'json',
+        url: urlSite + '/page/ajax?helper=Scenario&type=addCategory&json=1',
+        data: {'dcterms:title':layerTitle,
+        'dcterms:description':layerDesc,
+        'rt':'Catégorie indexation vidéo'}
+    }).done(function (data) {
+        timeliner.addLayer(data['o:title']+' : '+actant['o:title'],data['o:id']+'_'+actant['o:id']);
+        timeliner.repaintAll();
+    })
+    .fail(function (e) {
+        new jBox('Notice', {
+            content: htmlError,
+            color: 'black',
+            position: {
+                y: 'center',
+                x: 'center'
+            }
+        });    
+    console.log(e);
+    })
+    .always(function () {
+        mdAjoutLayer.close();
+    });
+}
 
 //fonction spécifiques à la page  
 function saveIndex(modif) {
@@ -50,8 +118,8 @@ function saveIndex(modif) {
             content: 'Veuillez saisir un titre',
             color: 'black',
             position: {
-                y: window.innerHeight / 2,
-                x: window.innerWidth / 2
+                y: 'center',
+                x: 'center'
             }
         });
         return;
@@ -80,29 +148,47 @@ function saveIndex(modif) {
             url: urlSite + '/page/ajax?helper=Scenario&type=saveIndex&json=1',
             data: dataIndex
         }).done(function (data) {
-            let idLayer = document.getElementById('idLayer').value,
-                idEntry = document.getElementById('idEntry').value;
-            if (!modif) {
-                document.getElementById('idIndex').value = data[0]['idIndex'];
-                document.getElementById('btnIMmodif').style.display = 'block';
-                document.getElementById('btnIMajout').style.display = 'none';
-                //récupère la clef du layer
-                layer = timeliner.getLayer('name',data[0]['category'])
-                if(!layer.length){
-                    layer = timeliner.addLayer(data[0]['category']);
-                }else layer = layer[0];
-                document.getElementById('idLayer').value = layer.idLayer;
-                //ajout de l'entrée dans le layer
-                document.getElementById('idEntry').value = timeliner.addTrack(layer, data[0]);
-                timeliner.addTrack(layer, data[1]);
+            if(data.error){
+                new jBox('Notice', {
+                    content: data.message,
+                    color: 'black',
+                    position: {
+                        y: 'center',
+                        x: 'center'
+                    }
+                });    
             }else{
-                timeliner.updateTrack("layers:"+idLayer+":values:"+idEntry, data[0]);
-                timeliner.updateTrack("layers:"+idLayer+":values:"+(parseInt(idEntry, 10)+1), data[1]);
+                let idLayer = document.getElementById('idLayer').value,
+                    idEntry = document.getElementById('idEntry').value;
+                if (!modif) {
+                    document.getElementById('idIndex').value = data[0]['idIndex'];
+                    document.getElementById('btnIMmodif').style.display = 'block';
+                    document.getElementById('btnIMajout').style.display = 'none';
+                    //récupère la clef du layer
+                    layer = timeliner.getLayer('name',data[0]['category'])
+                    if(!layer.length){
+                        layer = timeliner.addLayer(data[0]['category'],data[0]['idGroup']);
+                    }else layer = layer[0];
+                    document.getElementById('idLayer').value = layer.idLayer;
+                    //ajout de l'entrée dans le layer
+                    document.getElementById('idEntry').value = timeliner.addTrack(layer, data[0]);
+                    timeliner.addTrack(layer, data[1]);
+                }else{
+                    timeliner.updateTrack("layers:"+idLayer+":values:"+idEntry, data[0]);
+                    timeliner.updateTrack("layers:"+idLayer+":values:"+(parseInt(idEntry, 10)+1), data[1]);
+                }
+                timeliner.repaintAll();
             }
-            timeliner.repaintAll();
-
         })
         .fail(function (e) {
+            new jBox('Notice', {
+                content: htmlError,
+                color: 'black',
+                position: {
+                    y: 'center',
+                    x: 'center'
+                }
+            });    
             console.log(e);
         })
         .always(function () {
@@ -127,9 +213,12 @@ function showListeScenario() {
 }
 
 function chargeScenario(e, d) {
+    //supprime les médias cards
+    d3.select("#mediaCards").selectAll("div").remove();
+
     //vérifie s'il faut calculer le scénario
     let refs = d["dcterms:isReferencedBy"][0]["@value"].split('-');
-    if (refs.length > 1) {
+    if (refs.length > 1 && actant) {
         mdWait.open();
         $.ajax({
                 type: 'GET',
@@ -332,14 +421,16 @@ function showDetails(d) {
                     .attr("aria-current", "true");
                 let aSemBody = aSem.append('div').attr('class', 'd-flex w-100 justify-content-between');
                 let tools = aSemBody.append('div');
-                tools.append('span').attr('class', 'btnDel px-2')
-                    .style('cursor', 'pointer')
-                    .on('click', deleteDetail)
-                    .append('i').attr('class', 'fa-solid fa-trash-can');
-                tools.append('span').attr('class', 'btnEdit px-2')
-                    .style('cursor', 'pointer')
-                    .on('click', editDetail)
-                    .append('i').attr('class', 'fa-solid fa-pen-to-square');
+                if(actant){
+                    tools.append('span').attr('class', 'btnDel px-2')
+                        .style('cursor', 'pointer')
+                        .on('click', deleteDetail)
+                        .append('i').attr('class', 'fa-solid fa-trash-can');
+                    tools.append('span').attr('class', 'btnEdit px-2')
+                        .style('cursor', 'pointer')
+                        .on('click', editDetail)
+                        .append('i').attr('class', 'fa-solid fa-pen-to-square');
+                }
                 aSemBody.append('h6').attr('class', 'mb-1')
                     .style('color', d => d.p.value.entry._color)
                     .html(d => d.p.value.entry.category);
@@ -350,7 +441,9 @@ function showDetails(d) {
                 update.attr("id", d => {
                     return 'detailIndex_' + d.p.value.entry.idObj
                 });
-                update.select('.btnEdit').on('click', editDetail);
+                if(actant){
+                    update.select('.btnEdit').on('click', editDetail);
+                }
                 update.select('h6').style('color', d => d.p.value.entry._color).html(d => d.p.value.entry.category);
                 update.select('p').html(d => d.p.value.entry.text);
             },
@@ -410,6 +503,18 @@ function editDetail(e, data, entry) {
     }
     mdEditIndex.open();
 
+}
+function addLayer(cb){
+    if(!actant){
+        new jBox('Notice', {
+            content: "Vous n'avez pas le droit de créer une couche",
+            color: 'black',
+            position: {
+                y: 'center',
+                x: 'center'
+            }
+        });
+    }else mdAjoutLayer.open();
 }
 
 function addKeyframe(l, v, o) {
