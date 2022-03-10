@@ -259,6 +259,7 @@ function showTimelinerTarget() {
         for (const a in oa.actions) {
             let p = oa.actions[a];
             switch (p.prop) {
+                case 'Choice':
                 case 'omk_videoIndex':
                     joinVideoIndex(o, p);
                     break;
