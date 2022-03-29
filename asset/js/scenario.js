@@ -1,7 +1,7 @@
 let semSelect = {},
     timeliner, scenario, mediaCards = {},
     currentSource, currentMedia, videoIndex = [],
-    mdWait, mdEditIndex, mdAjoutLayer,
+    mdWait, mdEditIndex, mdAjoutLayer, mdAddScenario,
     listeDetails = d3.select('#listeDetails'),
     htmlError = '<p>ERREUR !</p>'
     +'<p><i class="fa-solid fa-bug"></i><i class="fa-solid fa-bug"></i><i class="fa-solid fa-bug"></i></p>'
@@ -12,7 +12,7 @@ function initVisios() {
     showListeScenario();
     //gestion des boutons
     d3.select('#btnAjoutScenario').on('click', function (e) {
-        showTimeliner();
+        mdAddScenario.open();
     });
     d3.select('#btnAjoutMedia').on('click', function (e) {
         showTimeliner();
@@ -29,6 +29,9 @@ function initVisios() {
     d3.select('#btnSelectCategory').on('click', function (e) {        
         selectCategory();
     });
+    d3.select('#btnSccreate').on('click', function (e) {
+        createScenario(true);
+    });    
     
     mdAjoutLayer = new jBox('Modal', {
         width: 200,
@@ -48,6 +51,17 @@ function initVisios() {
             $('#choixCategory .typeahead').val("");
             document.getElementById('ajoutLayerDescCategory').value="";            
         },        
+    });
+    mdAddScenario = new jBox('Modal', {
+        width: 480,
+        height: 384,
+        theme: 'TooltipDark',
+        overlay: false,
+        title: "Add scenario",
+        content: $('#mdAddScenario'),
+        draggable: 'title',
+        repositionOnOpen: false,
+        repositionOnContent: false
     });
 
     mdWait = new jBox('Modal', {
@@ -70,6 +84,36 @@ function initVisios() {
         repositionOnContent: false,
     });
 }
+
+function createScenario() {
+    mdWait.open();
+    //récupère les données saisies
+    let dataScena = {
+        'dcterms:title': document.getElementById('inputSctitre').value,
+        'dcterms:description': document.getElementById('inputScdesc').value,
+        'dcterms:creator': actant['o:id'],
+        'item_id':[]
+    }
+    seminairesToScenario.forEach(s=>dataScena['item_id'].push(s['o:id']));
+    //enregistre dans la base
+    $.ajax({
+            type: 'POST',
+            dataType: 'json',
+            url: urlSite + '/page/ajax?helper=Scenario&type=genereScenario&json=1&gen=global',
+            data: dataScena
+        }).done(function (data) {
+            itemsScenario.push(data);
+            showListeScenario();  
+            chargeScenario(null, data);
+        })
+        .fail(function (e) {
+            console.log(e);
+        })
+        .always(function () {
+            mdWait.close();
+        });
+}
+
 
 function selectCategory(){
     let idGroup = document.getElementById('ajoutLayerIdCat').value;

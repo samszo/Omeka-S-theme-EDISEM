@@ -28,6 +28,8 @@ const itemsScenario = <?php echo json_encode($scenarios); ?>
     , urlAdmin = '<?php echo $this->url('admin', [], true); ?>'
     , urlSite = '<?php echo $this->url('site', [], true); ?>'
     , urlPosterVideo="<?php echo $this->assetUrl('images/video-poster.png'); ?>"
+    , urlSuggestSeminaire =  urlApi+'/items?item_set_id=7204'
+      +'&property[0][property]=1&property[0][type]=in&property[0][text]=%QUERY&sort_by=title'
 ;
 
 window.onload = initVisios;
@@ -37,8 +39,13 @@ window.onload = initVisios;
   <div class="row">
     <div class="col bg-secondary text-white p-2">
       <?php echo $this->partial('edicem/tb-scenarios', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);?>
-      <?php echo $this->partial('edicem/form-edit-index', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);?>
-      <?php echo $this->partial('edicem/form-ajout-layer');?>
+      <?php 
+      if($isAdmin){
+        echo $this->partial('edicem/form-ajout-layer');
+        echo $this->partial('edicem/form-edit-index', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);
+        echo $this->partial('edicem/form-add-scenario');
+      }
+      ?>
       <div class="container">
         <div id="mediaCards" class="card-group"></div>
       </div>
