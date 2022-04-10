@@ -206,44 +206,51 @@ function LayerView(layer, dispatcher) {
 		// keyframe_button.style.borderStyle = 'solid';
 
 		var tween = null;
-		var o = utils.timeAtLayer(layer, s);
+		var arrO = utils.timeAtLayer(layer, s);
 		
-		if (!o) return;
+		if (!arrO) return;
 
-		if (o.can_tween) {
-			dropdown.style.opacity = 1;
-			dropdown.disabled = false;
-			// if (o.tween)
-			dropdown.value = o.tween ? o.tween : 'none';
-			if (dropdown.value === 'none') dropdown.style.opacity = 0.5;
-		}
+			
+		if (layer._mute) return;
 
-		if (o.keyframe) {
-			keyframe_button.style.color = Theme.c;
-			// keyframe_button.disabled = true;
-			// keyframe_button.style.borderStyle = 'inset';
-		}
+		arrO.forEach(o => {
 
-		if (o.idObj) {
-			idObj.setValue(o.idObj);
-			idObj.paint();
-		}
+			if (o.can_tween) {
+				dropdown.style.opacity = 1;
+				dropdown.disabled = false;
+				// if (o.tween)
+				dropdown.value = o.tween ? o.tween : 'none';
+				if (dropdown.value === 'none') dropdown.style.opacity = 0.5;
+			}
 
-		if (o.prop) {
-			prop.setValue(o.prop);
-			prop.paint();
-		}
+			if (o.keyframe) {
+				keyframe_button.style.color = Theme.c;
+				// keyframe_button.disabled = true;
+				// keyframe_button.style.borderStyle = 'inset';
+			}
 
-		if (o.text) {
-			text.setValue(o.text);
-			text.paint();
-		}
+			if (o.idObj) {
+				idObj.setValue(o.idObj);
+				idObj.paint();
+			}
 
-		state.get('_value').value = o.value;
-		number.setValue(o.value);
-		number.paint();
+			if (o.prop) {
+				prop.setValue(o.prop);
+				prop.paint();
+			}
 
-		dispatcher.fire('target.notify', layer, o);
+			if (o.text) {
+				text.setValue(o.text);
+				text.paint();
+			}
+
+			state.get('_value').value = o.value;
+			number.setValue(o.value);
+			number.paint();
+
+		});
+		dispatcher.fire('target.notify', layer, arrO);
+
 	}
 
 }

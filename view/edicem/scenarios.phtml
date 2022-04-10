@@ -11,7 +11,7 @@ $isAdmin = $this->identity() && $this->identity()->getRole() == "global_admin" ?
 $translate = $this->plugin('translate');
 
 //récupère la liste des scénarios
-$scenarios = $this->api()->search('items', ['resource_class_id'=>1085,'sort_by'=>'dcterms:date'])->getContent();
+$scenarios = $this->api()->search('items', ['resource_class_id'=>1344,'sort_by'=>'dcterms:date'])->getContent();
 
 $actant = false;
 if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$this->identity()]); 
@@ -57,12 +57,4 @@ window.onload = initVisios;
 
 import { Timeliner } from '<?php echo $this->assetUrl('js/timeliner/timeliner.js'); ?>'
 
-var actions = {};
-
-// initialize timeliner
-timeliner = new Timeliner(actions);
-timeliner.hide();
-timeliner.fctKeyframe = addKeyframe;
-timeliner.fctKeyframeMove = changeKeyframe;
-timeliner.fctAddLayer = addLayer;
 </script>

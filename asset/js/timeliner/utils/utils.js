@@ -162,17 +162,29 @@ function timeAtLayer(layer, t) {
 	// can't do anything
 	if (il === 0) return;
 
-	if (layer._mute) return
+	if (layer._mute) return;
 
 	// find boundary cases
 	entry = values[0];
 	if (t < entry.time) {
-		return {
+		return [{
 			value: entry.value,
 			can_tween: false, // cannot tween
 			keyframe: false // not on keyframe
-		};
+		}];
 	}
+	//pour gérer la superposition des tracks
+	return getmultitracks(t, values);
+	//pour gérer une track unique avec tween
+	//return [gettrack(t, values)];
+
+}
+
+//pour gérer les animations normales
+function gettrack(t, values) {
+	let i, il = values.length
+	, entry = values[0]
+	, prev_entry;
 
 	for (i=0; i<il; i++) {
 		prev_entry = entry;
@@ -248,8 +260,59 @@ function timeAtLayer(layer, t) {
 		value: entry.value,
 		can_tween: false,
 		keyframe: false
-	};
+	};	
+}
 
+
+//pour gérer la superposition des tracks
+function getmultitracks(t, values) {
+	let rs = [], rsDbl = []
+	, i, il = values.length
+	, entry = values[0]
+	, prev_entry;
+	for (i=0; i<il; i++) {
+		prev_entry = entry;
+		entry = values[i];
+
+		if (t === entry.time && !rsDbl[entry.idObj]) {
+			rsDbl[entry.idObj]=1;
+			rs.push({
+			idEntry: i,
+			entry: entry,
+			tween: entry.tween,
+			can_tween: il > 1,
+			value: entry.value,
+			keyframe: true, // il > 1
+			text:entry.text ? entry.text : 'null',
+			prop:entry.prop ? entry.prop : 'null',
+			idObj:entry.idObj ? entry.idObj : 'null'
+			});
+		}
+		if (t > prev_entry.time && t < entry.time && prev_entry.idObj == entry.idObj && !rsDbl[prev_entry.idObj]) {
+			rsDbl[prev_entry.idObj]=1;
+			rs.push({
+				idEntry: i-1,					
+				value: prev_entry.value,
+				tween: false,
+				entry: prev_entry,
+				can_tween: true,
+				keyframe: false,
+				text:prev_entry.text ? prev_entry.text : 'null',
+				prop:prev_entry.prop ? prev_entry.prop : 'null',
+				idObj:prev_entry.idObj ? prev_entry.idObj : 'null'
+			});
+		}
+	}
+	if(rs.length){
+		return rs;
+	}else{
+		// time is after all entries
+		return [{
+			value: entry.value,
+			can_tween: false,
+			keyframe: false
+		}];
+	}
 }
 
 

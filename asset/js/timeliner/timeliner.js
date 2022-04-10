@@ -264,16 +264,19 @@ function Timeliner(target) {
 		loop_play = loop_play ? false : true;
 	}
 
+	this.fctPlay = false;
 	function startPlaying() {
 		// played_from = timeline.current_frame;
 		start_play = performance.now() - data.get('ui:currentTime').value * 1000;
 		layer_panel.setControlStatus(true);
+		if(me.fctPlay)me.fctPlay();
 		// dispatcher.fire('controls.status', true);
 	}
-
+	this.fctPause = false;
 	function pausePlaying() {
 		start_play = null;
 		layer_panel.setControlStatus(false);
+		if(me.fctPause)me.fctPause();
 		// dispatcher.fire('controls.status', false);
 	}
 
@@ -309,9 +312,11 @@ function Timeliner(target) {
 		// layer_panel.repaint(s);
 	}
 
+	this.fctTargetNotify = false;
 	dispatcher.on('target.notify', function(layer, value) {
 		if (target){
 			target[layer.id] = {'name':layer.name, 'layer':layer, 'value':value};
+			if(me.fctTargetNotify)me.fctTargetNotify(target[layer.id]);
 		} 
 	});
 
@@ -917,41 +922,45 @@ function Timeliner(target) {
 	this.getObjetActions=function(){
 		let objActions = {};
 		for (const key in target ){
-			let action = target[key]
-				, ids = action['value'].idObj
+			let action = target[key];
+			action['value'].forEach(v=>{
+				let ids = v.idObj
 				, params; 
-			if (ids) {
-				const arrIds = typeof(ids)=="string" ? ids.split(',') : [ids];
-				arrIds.forEach(idObj => {				
-					if(!objActions[idObj])objActions[idObj]={'e':document.getElementById(idObj),'actions':{}};
-					let aName = me.isTransform(action['value'].prop) || me.isTransform(action['value'].prop) ? 'styles' : action.name;
-					if(!objActions[idObj].actions[aName]){
-						objActions[idObj].actions[aName]={
-								'action':action.name
-								, 'idLayer':action.layer.idLayer
-								, 'value':action['value']
-								, 'prop':action['value'].prop
-								,'text':action['value'].text == 'null' ? '' : action['value'].text  
-								,'val':action['value'].value
-								,'styles':{'nb':0}
-								,'s':currentTimeStore.value
+				if (ids && ids!='null') {
+					const arrIds = typeof(ids)=="string" ? ids.split(',') : [ids];
+					arrIds.forEach(idObj => {				
+						if(!objActions[idObj])objActions[idObj]={'e':document.getElementById(idObj),'actions':{}};
+						let aName = me.isTransform(v.prop) || me.isTransform(v.prop) ? 'styles' : action.name;
+						if(!objActions[idObj].actions[aName]){
+							objActions[idObj].actions[aName]={
+									'action':action.name
+									, 'idLayer':action.layer.idLayer
+									, 'value':v
+									, 'prop':v.prop
+									,'text':v.text == 'null' ? '' : v.text  
+									,'val':v.value
+									,'styles':{'nb':0}
+									,'s':currentTimeStore.value
+							}
+						}else objActions[idObj].actions[aName].text += v.text == 'null' ? '' : ', '+v.text
+
+						params = objActions[idObj].actions[aName];
+						if(me.isTransform(v.prop)){
+							let t = me.getTransform(v.prop);
+							if(!params.styles['transform']) params.styles['transform']='';
+							params.styles['transform']+=` ${v.prop}(${v.value}${t.u ? t.u : ''}) `;
+							params.styles.nb ++;					
 						}
-					}
-					params = objActions[idObj].actions[aName];
-					if(me.isTransform(action['value'].prop)){
-						let t = me.getTransform(action['value'].prop);
-						if(!params.styles['transform']) params.styles['transform']='';
-						params.styles['transform']+=` ${action['value'].prop}(${action['value'].value}${t.u ? t.u : ''}) `;
-						params.styles.nb ++;					
-					}
-					if(me.isStyle(action['value'].prop)){
-						params.styles[action['value'].prop]=`${action['value'].value}`;					
-						params.styles.nb ++;					
-					}
-					objActions[idObj].actions[aName]=params;
-				});
-	
-			}
+						if(me.isStyle(v.prop)){
+							params.styles[v.prop]=`${v.value}`;					
+							params.styles.nb ++;					
+						}
+						objActions[idObj].actions[aName]=params;
+					});
+		
+				}
+
+			});
 		}
 		return objActions;
 	

@@ -1,5 +1,5 @@
 let semSelect = {},
-    timeliner, scenario, mediaCards = {},
+    timeliner, currentScenario, mediaCards = {}, tracks = [],
     currentSource, currentMedia, videoIndex = [],
     mdWait, mdEditIndex, mdAjoutLayer, mdAddScenario,
     listeDetails = d3.select('#listeDetails'),
@@ -13,9 +13,6 @@ function initVisios() {
     //gestion des boutons
     d3.select('#btnAjoutScenario').on('click', function (e) {
         mdAddScenario.open();
-    });
-    d3.select('#btnAjoutMedia').on('click', function (e) {
-        showTimeliner();
     });
     d3.select('#btnIMajout').on('click', function (e) {
         saveIndex();
@@ -240,12 +237,6 @@ function saveIndex(modif) {
         });
 }
 
-function showTimeliner() {
-    timeliner.show('dock-bottom-sam');
-    animate();
-}
-
-
 function showListeScenario() {
     d3.select('#ddmListeScenario').selectAll('li').remove();
     d3.select('#ddmListeScenario').selectAll('li').data(itemsScenario).enter().append('li').append('a')
@@ -259,58 +250,104 @@ function showListeScenario() {
 function chargeScenario(e, d) {
     //supprime les médias cards
     d3.select("#mediaCards").selectAll("div").remove();
+    d3.select("#btnCurrentScenario").text('...');
 
-    //vérifie s'il faut calculer le scénario
-    let refs = d["dcterms:isReferencedBy"][0]["@value"].split('-');
-    if (refs.length > 1 && actant) {
-        mdWait.open();
-        $.ajax({
-                type: 'GET',
-                dataType: 'json',
-                url: urlSite + '/page/ajax?helper=Scenario&type=genereScenario&json=1&item_id=' + refs[1] + '&gen=' + refs[0],
-            }).done(function (data) {
-                d.details = JSON.parse(data['schema:object'][0]['@value']);
-                scenario = d;
-                showTimeliner();
-                timeliner.load(scenario.details);
-            })
-            .fail(function (e) {
-                console.log(e);
-            })
-            .always(function () {
-                mdWait.close();
-            });
-    } else {
-        if (!d.details) d.details = JSON.parse(d['schema:object'][0]['@value']);
-        scenario = d;
-        showTimeliner();
-        timeliner.load(scenario.details);
-    }
-
+    currentScenario = new scenario({
+        'resource':d,
+        'actant':actant,    
+        'url': urlSite + '/page/ajax?helper=Scenario&type=genereScenario&json=1&gen=fromUti',
+    })
 }
 
-function animate() {
-    requestAnimationFrame(animate);
-    showTimelinerTarget();
-}
-
-function showTimelinerTarget() {
-
-    let objects = timeliner.getObjetActions();
-    videoIndex.forEach(v => v.a = 'd');
-    for (const o in objects) {
-        let oa = objects[o];
-        for (const a in oa.actions) {
-            let p = oa.actions[a];
-            switch (p.prop) {
-                case 'Choice':
-                case 'omk_videoIndex':
-                    joinVideoIndex(o, p);
-                    break;
+function getActants(data) {
+    let actants = [], dbl =[];
+    layers.forEach(l=>{
+        l.values.forEach(v=>{
+            if(!dbl[v["dcterms:creator"][0]["o:id"]]){
+                actants.push(v["dcterms:creator"][0]);
+                dbl[v["dcterms:creator"][0]["o:id"]]=1;
             }
-        }
-    }
-    if (videoIndex.length) showVideoIndex(timeliner.currentTimeStore.value);
+        });
+    });
+}
+
+
+
+function initReseau(container, d){
+    let data = getConceptGraphData(d);
+    d.r = new reseau({'cont':container
+        ,'width':400,'height':300
+        ,'data':data});
+}
+function getConceptGraphData(data){
+    //récupère le reseau de la branche du concept
+    let conceptGraph = {'nodes':[],'links':[]}
+    //ajoute le createur
+    conceptGraph['nodes'].push({id: data["dcterms:creator"][0]["o:id"], size: 1
+        , txtColor: 1
+        , group: 'creator'
+        , size: 5
+        , fct: false
+        , title: data["dcterms:creator"][0]["o:title"]}); 
+    //ajoute le layer
+    conceptGraph['nodes'].push({id: data.idCat, size: 1
+        , txtColor: 10
+        , group: 'category'
+        , size: 5
+        , fct: false
+        , title: data.category.split(' : ')[0]}); 
+    //ajoute le text
+    conceptGraph['nodes'].push({id: data.idObj, size: 1
+        , txtColor: 10
+        , group: data.prop
+        , size: 5
+        , fct: false
+        , title: data.text}); 
+    //ajoute les liens 
+    conceptGraph['links'].push({target: data.idCat
+            , source: data["dcterms:creator"][0]["o:id"], value: 1
+            , txtColor: 1
+            , group: "branche"});  
+    conceptGraph['links'].push({target: data.idObj
+        , source: data.idCat, value: 1
+        , txtColor: 1
+        , group: "branche"});  
+        return conceptGraph;
+}
+function updateConceptGraphData(r, data){
+    //récupère le reseau de la branche du concept
+    let conceptGraph = {'nodes':[],'links':[]}
+    //ajoute le createur
+    conceptGraph['nodes'].push({id: data["dcterms:creator"][0]["o:id"], size: 1
+        , txtColor: 1
+        , group: 'creator'
+        , size: 5
+        , fct: false
+        , title: data["dcterms:creator"][0]["o:title"]}); 
+    //ajoute le layer
+    conceptGraph['nodes'].push({id: data.idCat, size: 1
+        , txtColor: 10
+        , group: 'category'
+        , size: 5
+        , fct: false
+        , title: data.category.split(' : ')[0]}); 
+    //ajoute le text
+    conceptGraph['nodes'].push({id: data.idObj, size: 1
+        , txtColor: 10
+        , group: data.prop
+        , size: 5
+        , fct: false
+        , title: data.text}); 
+    //ajoute les liens 
+    conceptGraph['links'].push({target: data.idCat
+            , source: data["dcterms:creator"][0]["o:id"], value: 1
+            , txtColor: 1
+            , group: "branche"});  
+    conceptGraph['links'].push({target: data.idObj
+        , source: data.idCat, value: 1
+        , txtColor: 1
+        , group: "branche"});  
+        return conceptGraph;    
 }
 
 
@@ -321,7 +358,8 @@ function joinVideoIndex(id, p) {
     } else {
         videoIndex[id]={'p':p,'a':'c'};
         //vérifie s'il faut créer le média
-        let idTarget = videoIndex[id].p.value.entry.idTarget;
+        //let idTarget = videoIndex[id].p.value.entry.idTarget;
+        let idTarget = videoIndex[id].p.value.entry["oa:hasTarget"][0]["o:id"];
         if (!mediaCards[idTarget]) createMediaCard(videoIndex[id]);
         mediaCards[idTarget].index.push(videoIndex[id]);
     }
@@ -333,60 +371,83 @@ function showVideoIndex(s) {
         let d = mediaCards[mc];
         if (d.ready) {
             if(timeliner.isPlaying()){
-                if (d.video.paused()){
+                if (d.videoIsPaused){
                     d.video.play();
+                    d.videoIsPaused = false;
+                    //synchronise le timeliner et la vidéo avec une tolérance pour éviter les coupures
+                    if (Math.trunc(d.video.currentTime()) != Math.trunc(s)) d.video.currentTime(s);
                 }
             }else{
-                d.video.pause();                
+                d.video.pause();
+                d.videoIsPaused = true;                
+                //synchronise le timeliner et la vidéo avec une tolérance pour éviter les coupures
+                if (Math.trunc(d.video.currentTime()) != Math.trunc(s)) d.video.currentTime(s);
             }
-            //synchronise le timeliner et la vidéo avec une tolérance pour éviter les coupures
-            if (Math.trunc(d.video.currentTime()) != Math.trunc(s)) d.video.currentTime(s);
         }
         //affiche les details
         showDetails(d);
     }
 }
+function timelinerPause(){
+    for (const mc in mediaCards) {
+        if(mediaCards[mc].ready){
+            mediaCards[mc].video.pause();
+            mediaCards[mc].videoIsPaused = true;
+        };
+    }
+};
+function timelinerPlay(){
+    for (const mc in mediaCards) {
+        if(mediaCards[mc].ready){
+            mediaCards[mc].video.currentTime(timeliner.currentTimeStore.value);            
+            mediaCards[mc].video.play();
+            mediaCards[mc].videoIsPaused = false;
+        };
+    }
+};
 
 
-function createMediaCard(data) {
+function createMediaCard(entry) {
 
 
-    let m = {},
-        d = data.p.value.entry;
+    let m = {};
     m.card = d3.select("#mediaCards").append("div")
-        .attr('id', 'cardVideo' + d.idTarget)
+        .attr('id', 'cardVideo' + entry["oa:hasTarget"][0]["o:id"])
         .attr("class", "card text-white bg-dark");
-
-    /*carte vidéo haut annotation bas
-    appendVideoToMediaCard(m, d, m.card.append('video'));
-    m.body = m.card.append('div')
-    .attr("class", "card-body");
-    */
 
     //carte annotation droite vidéo gauche
     let rowCard = m.card.append('div').attr('class', 'row g-0');
     let colAnno = rowCard.append('div').attr('class', 'col-md-6');
+    m.idBody = "cardBody"+entry["oa:hasTarget"][0]["o:id"];
     m.body = colAnno.append('div')
+        .attr("id", m.idBody)
         .attr("class", "card-body");
     let colVideo = rowCard.append('div').attr('class', 'col-md-6');
-    colVideo.append('h5').html(d['nameTarget']);
-    appendVideoToMediaCard(m, d, colVideo.append('video'));
+    colVideo.append('h5').html(entry['nameTarget']);
+    appendVideoToMediaCard(m, entry, colVideo.append('video'));
 
-    //construction du body
+    /*construction du body = liste des annotations
     m.body.append('h5')
         .attr("class", "card-title").html("Annotations");
-    m.idListeDetails = "listeDetails" + d.idTarget;
+    m.idListeDetails = "listeDetails" + d["oa:hasTarget"][0]["o:id"];
     m.listeDetails = m.body.append('ul')
         .attr("class", "list-group listeDetails")
         .attr("id", d.idListeDetails);
-    m.index = [];
-    mediaCards[d.idTarget] = m;
+    */
 
+    //construction du body = réseau de lien
+    initReseau(m.body,entry);
+    
+    //construction du tag cloud
+    //m.tc = TagCloud('#'+m.idBody, [d.text]);
+
+    m.entries = [];
+    mediaCards[d["oa:hasTarget"][0]["o:id"]] = m;
 
 }
 
 function appendVideoToMediaCard(m, d, v) {
-    m.idVideo = "visiosVideo" + d.idTarget;
+    m.idVideo = "visiosVideo" + d["oa:hasTarget"][0]["o:id"];
     v.attr("id", m.idVideo)
         .attr("class", "video-js vjs-fluid card-img-top")
         .attr("controls", "true")
@@ -395,17 +456,20 @@ function appendVideoToMediaCard(m, d, v) {
         .attr("height", "300")
         .attr("poster", urlPosterVideo);
     m.ready = false;
+    m.videoIsPaused = true;
     m.video = videojs(m.idVideo,{
         controls:false
     })
     m.video.src({
-        type: d.typeTarget,
-        src: d.urlTarget
+        type: d["oa:hasTarget"][0]["o:media_type"],
+        src: d["oa:hasTarget"][0]["o:original_url"]
     });
     m.video.ready(function () {
         let playPromise = m.video.play();
         if (playPromise !== undefined) {
             playPromise.then(_ => {
+                    m.video.pause()
+                    d.videoIsPaused = false;
                     m.ready = true;
                     /*met à jour les extrémité du slider
                     sliderIndexStartEnd.noUiSlider.updateOptions({
@@ -456,6 +520,7 @@ function hideDetails(ids) {
 }
 
 function showDetails(d) {
+    if(d.listeDetails=== undefined)return;
     let dataIndex = d.index.filter(i => i.a == 'c' || i.a == 'u');
     //d.listeDetails.selectAll("li").remove();
     d.listeDetails.selectAll("li").data(dataIndex)
@@ -511,10 +576,10 @@ function editDetail(e, data, entry) {
     document.getElementById('idIndex').value = d.idObj;
     document.getElementById('category').value = d.category;
     document.getElementById('idGroup').value = d.idGroup;
-    document.getElementById('idSource').value = d.idSource ? d.idSource : "";
-    document.getElementById('idTarget').value = d.idTarget ? d.idTarget : "";
+    document.getElementById('idSource').value = d["oa:hasSource"] ? d["oa:hasSource"][0]["o:id"] : "";
+    document.getElementById('idTarget').value = d["oa:hasTarget"] ? d["oa:hasTarget"][0]["o:id"] : "";
     document.getElementById('idLayer').value = data ? data.p.idLayer : entry.idLayer;
-    document.getElementById('idEntry').value = data ? data.p.value.idEntry : entry.idEntry;
+    document.getElementById('idEntry').value = data ? d.value.idEntry : entry.idEntry;
     if (d.idTarget) {
         //masque le sélectionneur de média
         document.getElementById('choixMedia').style.display = 'none';
@@ -527,7 +592,7 @@ function editDetail(e, data, entry) {
         document.getElementById('btnIMmodif').style.display = 'none';
     }
     //vérifie si l'utilisateur à le droit de modifier
-    if(d.idCreator != actant["o:id"]){
+    if(d["dcterms:creator"][0]["o:id"] != actant["o:id"]){
         let html = '<div class="alert alert-danger" role="alert">'
             +'<i class="fa-solid fa-triangle-exclamation"></i>'
             +"<div>Interdit de modifier une entrée d'un autre utilisateur.</div>"
