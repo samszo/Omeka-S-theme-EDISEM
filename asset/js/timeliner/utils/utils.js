@@ -154,6 +154,9 @@ function timeAtLayer(layer, t) {
 	// this expect layer to be sorted
 	// not the most optimized for now, but would do.
 
+	// can't do anything
+	if (t === undefined) return;
+
 	var values = layer.values;
 	var i, il, entry, prev_entry;
 
@@ -174,26 +177,27 @@ function timeAtLayer(layer, t) {
 		}];
 	}
 	//pour gérer la superposition des tracks
-	return getmultitracks(t, values);
+	return getmultitracks(t, layer);
 	//pour gérer une track unique avec tween
-	//return [gettrack(t, values)];
+	//return [gettrack(t, layer)];
 
 }
 
 //pour gérer les animations normales
-function gettrack(t, values) {
-	let i, il = values.length
-	, entry = values[0]
+function gettrack(t, layer) {
+	let i, il = layer.values.length
+	, entry = layer.values[0]
 	, prev_entry;
 
 	for (i=0; i<il; i++) {
 		prev_entry = entry;
-		entry = values[i];
+		entry = layer.values[i];
 
 		if (t === entry.time) {
 			// only exception is on the last KF, where we display tween from prev entry
 			if (i === il - 1) {
 				return {
+					idLayer:layer.idLayer,
 					idEntry: i-1,
 					entry: prev_entry,
 					tween: prev_entry.tween,
@@ -206,6 +210,7 @@ function gettrack(t, values) {
 				};
 			}
 			return {
+				idLayer:layer.idLayer,
 				idEntry: i,
 				entry: entry,
 				tween: entry.tween,
@@ -221,6 +226,7 @@ function gettrack(t, values) {
 			// possibly a tween
 			if (!prev_entry.tween) { // or if value is none
 				return {
+					idLayer:layer.idLayer,
 					idEntry: i-1,					
 					value: prev_entry.value,
 					tween: false,
@@ -243,6 +249,7 @@ function gettrack(t, values) {
 			var new_value = prev_entry.value + Tweens[tween](k) * value_diff;
 
 			return {
+				idLayer:layer.idLayer,
 				idEntry: i-1,					
 				entry: prev_entry,
 				value: new_value,
@@ -263,20 +270,20 @@ function gettrack(t, values) {
 	};	
 }
 
-
 //pour gérer la superposition des tracks
-function getmultitracks(t, values) {
+function getmultitracks(t, layer) {
 	let rs = [], rsDbl = []
-	, i, il = values.length
-	, entry = values[0]
+	, i, il = layer.values.length
+	, entry = layer.values[0]
 	, prev_entry;
 	for (i=0; i<il; i++) {
 		prev_entry = entry;
-		entry = values[i];
+		entry = layer.values[i];
 
 		if (t === entry.time && !rsDbl[entry.idObj]) {
 			rsDbl[entry.idObj]=1;
 			rs.push({
+			idLayer:layer.idLayer,
 			idEntry: i,
 			entry: entry,
 			tween: entry.tween,
@@ -291,6 +298,7 @@ function getmultitracks(t, values) {
 		if (t > prev_entry.time && t < entry.time && prev_entry.idObj == entry.idObj && !rsDbl[prev_entry.idObj]) {
 			rsDbl[prev_entry.idObj]=1;
 			rs.push({
+				idLayer:layer.idLayer,
 				idEntry: i-1,					
 				value: prev_entry.value,
 				tween: false,

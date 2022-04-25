@@ -38,19 +38,12 @@ if ($activePage):
     if($page->slug()=='scenarios'){
         echo $this->partial('edicem/scenarios');
     }
+    if($page->slug()=='jdc'){
+        echo $this->partial('edicem/jdc');
+    }
     ?>
 </div>
 <?php $this->trigger('view.show.after'); ?>
 <?php if ($showPagePagination): ?>
 <?php echo $this->sitePagePagination(); ?>
 <?php endif; ?>
-
-<?php
-    if($page->slug()=='editeur'){
-        echo $this->partial('polemika-ea/nodeStyleModal');
-        echo $this->partial('polemika-ea/reificationModal');
-        echo $this->partial('polemika-ea/deleteDiagramModal');
-        echo $this->partial('polemika-ea/renommeDiagramModal');
-        echo $this->partial('polemika-ea/choixGenerateurModal');
-    }
-?>

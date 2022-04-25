@@ -36,5 +36,7 @@ function getModalContent(d){
     width="600"
     height="600"
     src="${user ? dt.adminUrl : dt.siteUrl}"></iframe>`;
-
+}
+function notifyBug(){
+    window.open("https://github.com/samszo/Omeka-S-theme-EDISEM/issues/new",'_blank');
 }

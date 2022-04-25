@@ -1,6 +1,6 @@
 <!-- formulaire pour l'indexation manuelle' -->
-<div class="container bg-dark text-white p-2" style="display:none" id="mdEditIndex">
-    <input id="idIndex" type="hidden" value="">
+<div class="container bg-dark text-white p-2" style="display:none" id="mdEditTrack">
+    <input id="idObj" type="hidden" value="">
     <input id="idCat" type="hidden" value="">
     <input id="idGroup" type="hidden" value="">
     <input id="idSource" type="hidden" value="">
@@ -15,7 +15,6 @@
                 <input class="typeahead" type="text" placeholder="Choisir un média">
             </div>
         </div>
-
 
         <div class="col-12">
             <label for="inputIMtitre" class="form-label">Titre</label>
@@ -59,9 +58,12 @@
           
         </div>
     </div>
+    <div class="row" id="sgtRelations"></div>
+
     <div class="d-flex justify-content-between mt-2">
-        <button id='btnIMajout' class="btn btn-danger" >Ajouter</button>
+        <button id='btnIMajout' class="btn btn-success" >Ajouter</button>
         <button id='btnIMmodif' class="btn btn-warning" >Modifier</button>
+        <button id='btnIMdelete' class="btn btn-danger" >Supprimer</button>
     </div>
 </div>
 <script>
@@ -124,14 +126,36 @@ $('#inputIMcolor').on('change',function(){
 $('#inputIMopa').on('change',function(){
   document.getElementById('inputIMcolorHelp').innerHTML = getColorRGBA($("#inputIMopa").val(), $("#inputIMcolor").val());
 })
-$('#inputIMdeb').on('change',function(){
-  document.getElementById('inputIMdebHelp').innerHTML = secondsToHms(document.getElementById('inputIMdeb').value);
+$('#inputIMdeb')
+.on('focus',function(){this.oldvalue = this.value})
+.on('change',function(){
+  if(coherenceDate(this.value, document.getElementById('inputIMfin').value)){
+    document.getElementById('inputIMdebHelp').innerHTML = currentScenario.secondsToHms(this.value);
+  }else this.value =this.oldvalue
 })
-$('#inputIMfin').on('change',function(){
-  document.getElementById('inputIMfinHelp').innerHTML = secondsToHms(document.getElementById('inputIMfin').value);
+$('#inputIMfin')
+.on('focus',function(){this.oldvalue = this.value})
+.on('change',function(){
+  if(coherenceDate(document.getElementById('inputIMdeb',this.value).value)){
+    document.getElementById('inputIMfinHelp').innerHTML = currentScenario.secondsToHms(this.value);
+  }else this.value =this.oldvalue
 })
 function getColorRGBA(opa, color){
   return 'rgba(' + parseInt(color.slice(-6, -4), 16) + ',' + parseInt(color.slice(-4, -2), 16) + ',' + parseInt(color.slice(-2), 16) 
     + ',' + opa + ')'
+}
+function coherenceDate(deb, fin){
+  if(deb >= fin){
+    new jBox('Notice', {
+          content: "La date de début doit précéder la date de fin",
+          color: 'black',
+          position: {
+              y: 'center',
+              x: 'center'
+          }
+      });        
+    return false;
+  }
+  return true;  
 }
 </script>

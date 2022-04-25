@@ -16,6 +16,31 @@ $scenarios = $this->api()->search('items', ['resource_class_id'=>1344,'sort_by'=
 $actant = false;
 if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$this->identity()]); 
 
+//récupère le resource template pour avoir la définition des suggestions 
+$props=[];
+$rt = $this->api()->read('resource_templates', ['label' => 'Indexation vidéo'])->getContent();
+$rtp = $rt->resourceTemplateProperties();
+foreach ($rtp as $p) {
+  $ac = $p->alternateComment();
+  if(substr($ac,0,10)=="suggestion"){
+    $class = $this->api()->search('resource_classes', ['term' => substr($ac,11)])->getContent()[0];
+    $url = $this->url('api', [], true)
+        .'/items?resource_class_id='.$class->id()
+        .'&property[0][property]=1&property[0][type]=in&property[0][text]=%QUERY&sort_by=title'
+    ;
+    $props[]=['p'=>$p->property(),'url'=>$url];
+  }
+  $dt = $p->dataTypes();
+  if($dt && substr($dt[0],0,11)=="customvocab"){
+    $cv = $this->api()->read('custom_vocabs', substr($dt[0],12))->getContent();
+    $url = $this->url('api', [], true)
+        .'/items?item_set_id='.$cv->itemSet()->id()
+        .'&property[0][property]=1&property[0][type]=in&property[0][text]=%QUERY&sort_by=title'
+    ;
+    $props[]=['p'=>$p->property(),'url'=>$url];
+  }
+}
+$o=1;
 
 ?>
 <script>
@@ -23,6 +48,9 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
 const itemsScenario = <?php echo json_encode($scenarios); ?>    
 
     , actant = <?php echo json_encode($actant); ?>    
+
+    , sgtProps = <?php echo json_encode($props); ?>    
+
 
     , urlApi = '<?php echo $this->url('api', [], true); ?>'
     , urlAdmin = '<?php echo $this->url('admin', [], true); ?>'
@@ -42,13 +70,18 @@ window.onload = initVisios;
       <?php 
       if($isAdmin){
         echo $this->partial('edicem/form-ajout-layer');
-        echo $this->partial('edicem/form-edit-index', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);
+        echo $this->partial('edicem/form-edit-track', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);
         echo $this->partial('edicem/form-add-scenario');
       }
       ?>
-      <div class="container">
-        <div id="mediaCards" class="card-group"></div>
+      <div id="mainContainer" class="container pt-4">
+        <div id="mediaCards" class="card-group" style="overflow-y: scroll;" ></div>
+        <div id="visuScenario" class="row" style="display:none;background-color:white;" ></div>            
+        <div id="graphScenario" class="row" style="display:none;background-color:white;" ></div>            
       </div>
+
+
+
     </div>
   </div>
 </div>

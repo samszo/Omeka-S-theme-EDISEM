@@ -12,14 +12,46 @@ $allowCreate = $this->vars('allowCreate');
         <ul class="dropdown-menu" aria-labelledby="btngdListeScenario" id="ddmListeScenario">
         </ul>
     </div>
+    <div class="input-group">
+        <div class="input-group-text" id="btnCurrentScenario">...</div>
+    </div>    
+
+
+    <div id="gbModeVisuScenario" class="btn-group mx-1" role="group" aria-label="Mode de visusalisation du scenario" style="visibility:hidden">
+        <?php if($isAdmin) : ?>
+            <input type="radio" class="btn-check" name="btnModeVisuScenario" id="btnModeVisuScenarioEdit" autocomplete="off" checked>
+            <label class="btn btn-outline-danger" for="btnModeVisuScenarioEdit"><i class="fa-solid fa-laptop-code"></i></label>    
+        <?php endif; ?>
+        <input type="radio" class="btn-check" name="btnModeVisuScenario" id="btnModeVisuScenarioPlay" autocomplete="off" >
+        <label class="btn btn-outline-danger" for="btnModeVisuScenarioPlay"><i class="fa-solid fa-display"></i></label>    
+        <input type="radio" class="btn-check" name="btnModeVisuScenario" id="btnModeVisuScenarioGraph" autocomplete="off" >
+        <label class="btn btn-outline-danger" for="btnModeVisuScenarioGraph"><i class="fa-solid fa-diagram-project"></i></label>    
+    </div>
+
     <?php if($isAdmin) : ?>
-    <div class="btn-group btn-group-sm me-2" role="group" aria-label="Outils experts">
-        <button id="btnAjoutScenario" type="button" class="btn btn-danger" >Créer un scenario</button>
+    <div class="btn-group btn-group-sm mx-1" role="group" aria-label="Outils experts">
+        <button id="btnAjoutScenario" onclick="createScenario()" type="button" class="btn btn-danger mx-1" >
+        <i class="fa-solid fa-file-circle-plus"></i></button>
+        <button id='btnDeleteScenario' type="button" class="btn btn-danger mx-1" 
+            title='Delete scenario' style="visibility:hidden"><i class="fa-solid fa-trash-can"></i></button>
+
+        <button id='btnScenarioTxtToObj' type="button" class="btn btn-danger mx-1" 
+            title='Text to object' style="visibility:hidden">
+                <i class="fa-solid fa-font"></i>
+                <i class="fa-solid fa-arrow-right"></i>
+                <i class="fa-solid fa-object-group"></i>
+        </button>
     </div>
     <?php endif; ?>
-    <div class="btn-group btn-group-sm me-2" role="group" aria-label="Outils publics">
+    <div id="gbManipScenario" class="btn-group mx-1" role="group" aria-label="Manipulation scenario">
+        <button type="button" onclick="notifyBug(this)" class="btn btn-danger" 
+            title='Notify bug' >
+            <i class="fa-solid fa-bug"></i></button>
+    </div>
+    <!--
+    <div class="btn-group btn-group-sm mx-1" role="group" aria-label="Outils publics">
         <button type="button" class="btn btn-success">Citer</button>
         <button type="button" class="btn btn-success">Incorporer</button>
     </div>
-
+    -->
 </div>

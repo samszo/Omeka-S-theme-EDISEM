@@ -8,6 +8,12 @@ switch ($helper) {
         $scenario = $this->ScenarioFactory($this->params());
         echo $this->json($scenario);                
     break;
+    case "JDC":
+        //gestion des dimensions avec le module JDC
+        $user = $this->identity();
+        $rs = $this->JDCFactory(['user'=>$user,'params'=>$this->params()->fromPost()]);
+        echo json_encode($rs,true);                
+    break;
 }
 
 

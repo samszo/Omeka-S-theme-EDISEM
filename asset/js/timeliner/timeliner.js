@@ -71,6 +71,13 @@ function Timeliner(target) {
 		undo_manager.save(new UndoState(data, 'Loaded'), true);
 	});
 
+	this.getAllEntry = function(){
+		let entries = [];
+		layers.forEach(l => {
+			entries = entries.concat(l.values);
+		});
+		return entries;
+	};
 	this.getLayer = function(key, val){
 		return layers.filter(l=>l[key]==val);
 	};
@@ -79,6 +86,15 @@ function Timeliner(target) {
 		layer.values.splice(v, 0, entry);
 		return v;
 	};
+	this.deleteTrack = function deleteTrack(iLayer, iEntry) {
+		layers[iLayer].values.splice(iEntry, 1);
+		repaintAll();
+		if(me.fctTargetNotify)me.fctTargetNotify(target[iLayer]);
+
+	};
+
+
+
 
 	this.fctKeyframe = false;
 	dispatcher.on('keyframe', function(layer, value) {
@@ -904,10 +920,10 @@ function Timeliner(target) {
 		return cssTransform[s];
 	};
 	this.hide = function() {
-		root.style.display='none';
+		root.firstChild.style.display='none';
 	};
 	this.show = function(snapType) {
-		root.style.display='block';
+		root.firstChild.style.display='block';
 		//snap la fenêtre
 		widget.setSnapType(snapType);
 		widget.resizeEdges();
