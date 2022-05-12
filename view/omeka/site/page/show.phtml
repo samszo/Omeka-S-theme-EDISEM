@@ -39,8 +39,11 @@ if ($activePage):
         echo $this->partial('edicem/scenarios');
     }
     if($page->slug()=='jdc'){
-        echo $this->partial('edicem/jdc');
+        echo $this->partial('edicem/jdc');        
     }
+    if($page->slug()=='sparnatural'){
+        echo $this->partial('edicem/sparnatural');        
+    }    
     ?>
 </div>
 <?php $this->trigger('view.show.after'); ?>

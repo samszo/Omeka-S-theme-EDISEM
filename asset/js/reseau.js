@@ -33,6 +33,19 @@ class reseau {
             ]
         }; 
         this.fontSize = params.fontSize ? params.fontSize : 12;
+        this.mdEditFiltre = new jBox('Modal', {
+            width: 480,
+            height: 384,
+            theme: 'TooltipDark',
+            overlay: false,
+            title: "Editer le filtre",
+            content: $('#mdEditFiltre'),//ATTENTION le formulaire doit être ajouter à la page HTML
+            draggable: 'title',
+            repositionOnOpen: false,
+            repositionOnContent: false,
+        });
+
+
         var svg, container, link, node, labelNode, color, label
         ,adjlist, labelLayout, graphLayout
         ,objEW, lgdSize, legende, sltGroup=[], colors=[];            
@@ -191,31 +204,49 @@ class reseau {
 
 
         function addLegende(nom, data,ori){
-            let types = Array.from(d3.group(data, d => d.group).keys());
+            let types = Array.from(d3.group(data, d => d.group).keys()).map((k,i)=>{return {'n':k,'i':i,'t':nom, 'idFiltre':'filter'+nom+i};});
 
             types.unshift(nom+' : ');              
             let scaleLgdHori = d3
               .scaleBand()
               //.paddingInner(0.2)
-              .domain(types)
+              .domain(types.map(t=>t.n))
               .range([lgdSize.x, lgdSize.width]);            
             let itemsLgd = legende.selectAll('.ilgd'+nom).data(types).enter()
                 .append('g').attr('class','ilgd'+nom)
                 .style("cursor","pointer")
                 .on('click',selectGroup);
             itemsLgd.append('rect')         
-              .attr("x", d => scaleLgdHori(d))
+              .attr("x", d => scaleLgdHori(d.n))
               .attr("y", ori.y+lgdSize.height/4)
-              .attr("fill", (d,i) => i==0 ? 'black' : getColor(d))
+              .attr("fill", (d,i) => i==0 ? 'black' : getColor(d.n))
               .attr("height", lgdSize.height/2)
               .attr("width", scaleLgdHori.bandwidth());
-            itemsLgd.append('text')         
-              .attr("x", (d,i) => i==0 ? scaleLgdHori(d) : scaleLgdHori(d)+scaleLgdHori.bandwidth()/2)
+            let t = itemsLgd.append('text')         
+              .attr("x", (d,i) => i==0 ? scaleLgdHori(d.n) : scaleLgdHori(d.n)+scaleLgdHori.bandwidth()/2)
               .attr("y", ori.y+lgdSize.height/2 + me.fontSize/2)
               .attr("text-anchor", (d,i) => i==0 ? "start" : "middle")
               .attr("font-size", me.fontSize)
               .style("fill", "white")
-              .text(d => d);
+              .text(d => d.n)
+            //ajoute le bouton de filtre
+            itemsLgd.append('svg').attr('viewBox','0 0 512 512')
+                .attr("id", (d,i) => i==0 ? 'no' : d.idFiltre)
+                .attr("x", d => scaleLgdHori(d.n))
+                .attr("y", ori.y+lgdSize.height/4)
+                .attr("height", lgdSize.height/2)
+                .attr("width", lgdSize.height/2)
+                .append('path')
+                .attr('d',(d,i)=> i==0 ? '': 'M3.853 54.87C10.47 40.9 24.54 32 40 32H472C487.5 32 501.5 40.9 508.1 54.87C514.8 68.84 512.7 85.37 502.1 97.33L320 320.9V448C320 460.1 313.2 471.2 302.3 476.6C291.5 482 278.5 480.9 268.8 473.6L204.8 425.6C196.7 419.6 192 410.1 192 400V320.9L9.042 97.33C-.745 85.37-2.765 68.84 3.854 54.87L3.853 54.87z');
+            itemsLgd.append('svg').attr('viewBox','0 0 576 512')
+                .attr("id", d => 'afilter'+d.t+d.i)
+                .attr("x", d => scaleLgdHori(d.n))
+                .attr("y", ori.y+lgdSize.height/4)
+                .attr("height", lgdSize.height/2)
+                .attr("width", lgdSize.height/2)
+                .attr("visibility", 'hidden')
+                .append('path')
+                .attr('d',(d,i)=> i==0 ? '': 'M3.853 22.87C10.47 8.904 24.54 0 40 0H472C487.5 0 501.5 8.904 508.1 22.87C514.8 36.84 512.7 53.37 502.1 65.33L396.4 195.6C316.2 212.1 255.1 283 255.1 368C255.1 395.4 262.3 421.4 273.5 444.5C271.8 443.7 270.3 442.7 268.8 441.6L204.8 393.6C196.7 387.6 192 378.1 192 368V288.9L9.042 65.33C-.745 53.37-2.765 36.84 3.854 22.87H3.853zM287.1 368C287.1 288.5 352.5 224 432 224C511.5 224 576 288.5 576 368C576 447.5 511.5 512 432 512C352.5 512 287.1 447.5 287.1 368zM491.3 331.3C497.6 325.1 497.6 314.9 491.3 308.7C485.1 302.4 474.9 302.4 468.7 308.7L432 345.4L395.3 308.7C389.1 302.4 378.9 302.4 372.7 308.7C366.4 314.9 366.4 325.1 372.7 331.3L409.4 368L372.7 404.7C366.4 410.9 366.4 421.1 372.7 427.3C378.9 433.6 389.1 433.6 395.3 427.3L432 390.6L468.7 427.3C474.9 433.6 485.1 433.6 491.3 427.3C497.6 421.1 497.6 410.9 491.3 404.7L454.6 368L491.3 331.3z')
         }
 
         function getColor(key){
@@ -229,14 +260,28 @@ class reseau {
 
         function selectGroup(e,d){
             if(!sltGroup[d])sltGroup[d]='hidden';
-            else
-                sltGroup[d]=sltGroup[d]=='hidden' ? 'visible' : 'hidden';
-            //on change le bouton
-            d3.select(e.target.parentNode.firstChild).attr('fill', sltGroup[d]=='hidden' ? 'black' : color(d));
+            else sltGroup[d]= sltGroup[d]=='hidden' ? 'visible' : 'hidden';
+
+            //gestion des boutons de filtre
+            d3.select('#'+d.idFiltre).attr('visibility', sltGroup[d]);
+            d3.select('#a'+d.idFiltre).attr('visibility', sltGroup[d]=='hidden' ? 'visible' : 'hidden');
+
             //on cache les noeuds, liens et textes
-            d3.selectAll('.n_'+d.replace(':','-')).attr('visibility',sltGroup[d]).each(showHideNodeLine);
-            d3.selectAll('.l_'+d.replace(':','-')).attr('visibility',sltGroup[d]);
-            d3.selectAll('.t_'+d.replace(':','-')).attr('visibility',sltGroup[d]);
+            link.each(l=>{
+                if(l.group==d)d3.select(this).attr('visibility',sltGroup[d]);
+            })
+            node.each(n=>{
+                if(n.group==d){
+                    d3.select(this).attr('visibility',sltGroup[d]);
+                    showHideNodeLine(n);
+                }
+            })
+            labelNode.each(ln=>{
+                if(ln.group==d)d3.select(this).attr('visibility',sltGroup[d]);
+            })
+            //d3.selectAll('.n_'+d.replace(':','-')).attr('visibility',sltGroup[d]).each(showHideNodeLine);
+            //d3.selectAll('.l_'+d.replace(':','-')).attr('visibility',sltGroup[d]);
+            //d3.selectAll('.t_'+d.replace(':','-')).attr('visibility',sltGroup[d]);
         }
         function showHideNodeLine(d){
             link.attr("visibility", o => o.source.index == d.index || o.target.index == d.index ? 'visible' : sltGroup[d.group]);

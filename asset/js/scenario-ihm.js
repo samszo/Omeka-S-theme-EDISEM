@@ -1,7 +1,5 @@
-let semSelect = {},
-    timeliner, currentScenario,
+let currentScenario,
     mdWait, mdAddScenario;
-
 
 function initVisios() {
     showListeScenario();
