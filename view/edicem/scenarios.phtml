@@ -11,7 +11,7 @@ $isAdmin = $this->identity() && $this->identity()->getRole() == "global_admin" ?
 $translate = $this->plugin('translate');
 
 //récupère la liste des scénarios
-$scenarios = $this->api()->search('items', ['resource_class_id'=>1344,'sort_by'=>'dcterms:date'])->getContent();
+$scenarios = $this->api()->search('items', ['resource_class_id'=>1362,'sort_by'=>'dcterms:date'])->getContent();
 
 $actant = false;
 if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$this->identity()]); 
