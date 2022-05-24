@@ -49,7 +49,7 @@ $this->headLink()->appendStylesheet($this->assetUrl('css/video-js.min.css'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/jBox.all.min.css'));
 $this->headLink()->prependStylesheet($this->assetUrl('css/nouislider.min.css'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/sparnatural.css'));
-$this->headLink()->appendStylesheet($this->assetUrl('css/edicem.css'));
+$this->headLink()->appendStylesheet($this->assetUrl('css/edisem.css'));
 
 //pour l'autocompletion
 $this->headLink(array('rel'  => 'manifest','href' => $this->assetUrl('../manifest.json')));
@@ -75,7 +75,7 @@ $this->trigger('view.layout');
     <body class="d-flex h-100 text-center text-white bg-dark">
     
     <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
-        <?php echo $this->partial('edicem/header-info', ['site'=>$site]);?>
+        <?php echo $this->partial('edisem/header-info', ['site'=>$site]);?>
     
       <main id='mainContent' class="px-3">
 
@@ -85,7 +85,7 @@ $this->trigger('view.layout');
 
       </main>
     
-      <?php echo $this->partial('edicem/footer');?>
+      <?php echo $this->partial('edisem/footer');?>
 
     </div>
     

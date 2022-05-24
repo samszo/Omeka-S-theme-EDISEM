@@ -1,6 +1,6 @@
 <?php
 if($page->slug()=='ajax'){
-    echo $this->partial('edicem/'.$page->slug(), []);
+    echo $this->partial('edisem/'.$page->slug(), []);
     return;
 }
 
@@ -33,16 +33,16 @@ if ($activePage):
     <?php echo 
     $this->content; 
     if($page->slug()=='visios'){
-        echo $this->partial('edicem/visios');
+        echo $this->partial('edisem/visios');
     }
     if($page->slug()=='scenarios'){
-        echo $this->partial('edicem/scenarios');
+        echo $this->partial('edisem/scenarios');
     }
     if($page->slug()=='jdc'){
-        echo $this->partial('edicem/jdc');        
+        echo $this->partial('edisem/jdc');        
     }
     if($page->slug()=='sparnatural'){
-        echo $this->partial('edicem/sparnatural');        
+        echo $this->partial('edisem/sparnatural');        
     }    
     ?>
 </div>

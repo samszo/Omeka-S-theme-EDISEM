@@ -3,9 +3,9 @@
    "display":"standalone",
    "orientation":"portrait",
    "theme_color":"#fff",
-   "short_name":"EDICEM",
+   "short_name":"edisem",
    "name":"EDItorialisation de SEMinaire",
-   "description":"EDICEM : EDItorialisation de SEMinaire.",
+   "description":"edisem : EDItorialisation de SEMinaire.",
    "lang":"fr-FR",
    "icons":[
       {
