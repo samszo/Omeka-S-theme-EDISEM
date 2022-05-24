@@ -1,4 +1,6 @@
 <?php
+$idScenario = $this->params()->fromQuery('idScenario') ? $this->params()->fromQuery('idScenario') : 0;
+
 $allowAnnotation=false;
 if ($this->userIsAllowed(\Annotate\Entity\Annotation::class, 'create')) {
   $allowAnnotation=true;
@@ -11,12 +13,38 @@ $isAdmin = $this->identity() && $this->identity()->getRole() == "global_admin" ?
 $translate = $this->plugin('translate');
 
 //récupère la liste des scénarios
-$scenarios = $this->api()->search('items', ['resource_class_id'=>1362,'sort_by'=>'dcterms:date'])->getContent();
+//récupère la liste des scénarios
+$rt =  $this->api()->search('resource_templates', ['label' => 'Scénario',])->getContent()[0];
+$scenarios = $this->api()->search('items', ['resource_template_id'=>$rt->id(),'sort_by'=>'dcterms:date'])->getContent();
 
 $actant = false;
 if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$this->identity()]); 
 
-//récupère le resource template pour avoir la définition des suggestions 
+
+//récupère les suggestions
+$props=$this->ScenarioFactory(['type'=>'getRtSuggestion','label'=>'Indexation vidéo','urlApi'=>$this->url('api', [], true)]); 
+
+$this->headScript()->appendFile($this->assetUrl('js/scenario-ihm.js'));
+$this->headScript()->appendFile($this->assetUrl('js/scenario.js'));
+
+//charge le scenario passer en paramètre
+$getScenario=false;
+if($idScenario){
+  $getScenario =  $this->api()->read('items',$idScenario)->getContent();
+  //et les scripts associés
+  $medias  = $getScenario->media();
+  foreach ($medias as $m) {
+      switch ($m->displayTitle()) {
+          case 'script':
+            $this->headScript()->appendFile($m->originalUrl());
+            break;                
+      }
+  }  
+}
+
+
+
+/*récupère le resource template pour avoir la définition des suggestions 
 $props=[];
 $rt = $this->api()->read('resource_templates', ['label' => 'Indexation vidéo'])->getContent();
 $rtp = $rt->resourceTemplateProperties();
@@ -41,6 +69,7 @@ foreach ($rtp as $p) {
   }
 }
 $o=1;
+*/
 
 ?>
 <script>
@@ -58,7 +87,7 @@ const itemsScenario = <?php echo json_encode($scenarios); ?>
     , urlPosterVideo="<?php echo $this->assetUrl('images/video-poster.png'); ?>"
     , urlSuggestSeminaire =  urlApi+'/items?item_set_id=7204'
       +'&property[0][property]=1&property[0][type]=in&property[0][text]=%QUERY&sort_by=title'
-;
+    , getScenario = <?php echo json_encode($getScenario); ?>;
 
 window.onload = initVisios;
 </script>

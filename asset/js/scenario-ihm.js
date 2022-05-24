@@ -1,18 +1,9 @@
-let currentScenario,
-    mdWait, mdAddScenario;
+let currentScenario, mdAddScenario;
 
 function initVisios() {
     showListeScenario();
+    if(getScenario)chargeScenario(null,getScenario);
 
-    //gestion des boutons    
-    mdWait = new jBox('Modal', {
-        width: 200,
-        height: 100,
-        title: 'Patience...',
-        content: '<div class="loading">' +
-        '<p style="width:150px" >Merci de patienter...</p>' +
-        '</div>'
-    });
 }
 
 //fonction spécifiques à la page  
@@ -23,7 +14,8 @@ function showListeScenario() {
         .html((s, i) => {
             return s['o:title'];
         })
-        .on('click', chargeScenario);
+        .on('click', (e,d)=>window.location = urlSite + '/page/scenarios?idScenario='+d['o:id']);        
+        //.on('click', chargeScenario);
 }
 
 function chargeScenario(e, d) {

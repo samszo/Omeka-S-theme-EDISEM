@@ -768,13 +768,15 @@ class scenario {
             m.ready = false;
             m.videoIsPaused = true;
             m.video = videojs(m.idVideo,{
-                controls:false
+                controls:true,
+                autoplay: true
             })
             m.video.src({
                 type: d["oa:hasTarget"][0]["o:media_type"],
                 src: d["oa:hasTarget"][0]["o:original_url"]
             });
             m.video.ready(function () {
+                m.ready = true;
                 let playPromise = m.video.play();
                 if (playPromise !== undefined) {
                     playPromise.then(_ => {
