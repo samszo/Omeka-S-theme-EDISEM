@@ -73,7 +73,8 @@ class scenario {
         this.heightEdit = false;
         this.height = false;
         this.width = false;
-
+        this.magicDuree = params.magicDuree ? params.magicDuree : 5;
+        this.magicTrackLabel = params.magicTrackLabel ? params.magicTrackLabel : "Magic tracks";
     
         this.scenarioException = function(value) {
             this.value = value;
@@ -233,9 +234,19 @@ class scenario {
             timelinerShow();
 
             getCreators();
+            addMagicLayer();
 
 
         }        
+
+        function addMagicLayer(){
+            //vérifie si le layer existe
+            let layer = me.timeliner.getLayer('name',me.magicTrackLabel+' : '+me.actant['o:title'])
+            if(!layer.length){
+                document.getElementById('ajoutLayerLblCat').value=me.magicTrackLabel;
+                me.addCategory();
+             }
+        }
 
         function initGraphAll(){
             //constructions des datas;
@@ -652,7 +663,7 @@ class scenario {
                         x: 'center'
                     }
                 });
-                throw new me.scenarioException("Erreur ajout catagory.",e);
+                throw new me.scenarioException("Erreur ajout category.",e);
 
             })
             .always(function () {
@@ -725,14 +736,20 @@ class scenario {
             //carte = tracks à gauche + vidéo à droite
             let rowCard = m.card.append('div').attr('class', 'row g-0');
             let colAnno = rowCard.append('div').attr('class', 'col-md-6');
+            m.idSource = d["oa:hasSource"][0]["o:id"];
+            m.idTarget = d["oa:hasTarget"][0]["o:id"];
             m.idBody = "cardBody"+d["oa:hasTarget"][0]["o:id"];
             m.body = colAnno.append('div')
                 .attr("id", m.idBody)
                 .attr("class", "card-body");
             let colVideo = rowCard.append('div').attr('class', 'col-md-6');
             colVideo.append('h5').html(d["oa:hasTarget"][0]["o:title"]+' - '+d["oa:hasTarget"][0]["o:id"]);
+            
             appendVideoToMediaCard(m, d, colVideo.append('video'));
-        
+
+            //ajoute les boutons de gestion du media
+            appendButtonForMedia(m, d, colVideo);
+
             /*construction du body = liste des annotations
             m.body.append('h5')
                 .attr("class", "card-title").html("Annotations");
@@ -754,6 +771,57 @@ class scenario {
             m.tracks = [];
             me.mediaCards[d["oa:hasTarget"][0]["o:id"]] = m;
         
+        }
+        function appendButtonForMedia(m, d, c) {
+            if(!d["oa:hasTarget"]) return;
+            let btnBlock = c.append('div').attr('class',"d-grid gap-2 d-md-block");
+            btnBlock.append('button').attr('class',"btn btn-danger btn-sm").html('<i class="fa-solid fa-hand-sparkles"></i>')
+                .on('click',function(){addMagicTrack(m);});
+            
+        }
+        function addMagicTrack(m){   
+            if(!m.video)return;
+            let layer = me.timeliner.getLayer('name',me.magicTrackLabel+' : '+me.actant['o:title'])[0];
+
+            let dataTrack = {
+                'dcterms:title': "Magic Track",
+                'schema:category': layer.id.split('_')[0],
+                'oa:start': parseInt(m.video.currentTime()),
+                'oa:end': parseInt(m.video.currentTime())+me.magicDuree,
+                'schema:color': 'red',
+                'oa:hasSource': m.idSource,
+                'oa:hasTarget': m.idTarget,
+                'idGroup': layer.id,
+                'category': me.magicTrackLabel+' : '+me.actant['o:title'],
+                'dcterms:creator': actant['o:id'],
+                'idScenario': me.details.idScenario,
+                "action":"addMagicTrack",
+                'getItem':1
+            }
+
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                url: urlSite + '/page/ajax?helper=MagicTrack&json=1&type=createTrack',
+                data: dataTrack
+            }).done(function (data) {
+                //ajout de l'entrée dans le layer
+                me.timeliner.addTrack(layer, data[0]);
+                me.timeliner.addTrack(layer, data[1]);
+                me.timeliner.repaintAll();
+            })
+            .fail(function (e) {
+                new jBox('Notice', {
+                    content: me.htmlError,
+                    color: 'black',
+                    position: {
+                        y: 'center',
+                        x: 'center'
+                    }
+                });
+                throw new me.scenarioException("Erreur ajout MagicTrack.",e);
+            });
+
         }
         
         function appendVideoToMediaCard(m, d, v) {

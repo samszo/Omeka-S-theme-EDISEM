@@ -4,6 +4,25 @@ $helper = $this->params()->fromQuery('helper','');
 $log = $this->logger();
 
 switch ($helper) {
+    case 'MagicTrack':
+        $params = $this->params()->fromPost();
+        //vérifie l'existence d'un fragment équivalent
+        $params['ref'] = 'ChaoticumTrack_'.$params['oa:hasSource'].'_'.$params['oa:hasTarget'].'_'.$params['oa:start'].'_'.$params['oa:end'];
+        $params['action'] = 'getMediaFragByRef';
+        $params['frag']=$this->ChaoticumSeminarioFactory($params);
+        if(!$params['frag']){
+            //création de la track
+            $params['oItem']=$this->ScenarioFactory($this->params());
+            //ajoute le fragment à la track
+            $params['action'] = 'addMagicTrack';
+            $params['frag']=$this->ChaoticumSeminarioFactory($params);    
+            //extraction des mots clefs
+            $params['service']='speachToText';        
+            $magic = $this->GoogleFactory($params);
+            $params['type']='getTimelinerTrack';        
+            echo json_encode($this->ScenarioFactory($params));
+        }
+        break;
     case 'Scenario':
         $scenario = $this->ScenarioFactory($this->params());
         echo $this->json($scenario);                
