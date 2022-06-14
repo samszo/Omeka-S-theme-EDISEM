@@ -73,7 +73,8 @@ class scenario {
         this.heightEdit = false;
         this.height = false;
         this.width = false;
-        this.magicDuree = params.magicDuree ? params.magicDuree : 5;
+        this.magicDureeBefore = params.magicDureeBefore ? params.magicDureeBefore : 3;
+        this.magicDureeAfter = params.magicDureeAfter ? params.magicDureeAfter : 3;
         this.magicTrackLabel = params.magicTrackLabel ? params.magicTrackLabel : "Magic tracks";
     
         this.scenarioException = function(value) {
@@ -295,7 +296,7 @@ class scenario {
                 .style('display','none')
                 .html('+');
             mainDiv.append('ul').attr('id',p=>'choose'+p.p['o:local_name'])
-                .attr("class","list-group list-group-horizontal");  
+                .attr("class","list-group");  
         
             me.sgtProps.forEach((p,ip)=>{
                 let className =p.p['o:local_name'];
@@ -774,20 +775,33 @@ class scenario {
         }
         function appendButtonForMedia(m, d, c) {
             if(!d["oa:hasTarget"]) return;
-            let btnBlock = c.append('div').attr('class',"d-grid gap-2 d-md-block");
-            btnBlock.append('button').attr('class',"btn btn-danger btn-sm").html('<i class="fa-solid fa-hand-sparkles"></i>')
+
+            let btnBlock = c
+                .append('div').attr('class',"btn-toolbar mb-3").attr('role','toolbar');
+            btnBlock.append('div').attr('class',"btn-group me-2").attr('role','group')
+                .append('button').attr('class',"btn btn-danger btn-sm").html('<i class="fa-solid fa-hand-sparkles"></i>')
                 .on('click',function(){addMagicTrack(m);});
-            
+            let inpB =  btnBlock.append('div').attr('class',"input-group");
+            inpB.append('div').attr('class',"input-group-text").html('s. avant')
+            inpB.append('input').attr('class',"form-control form-control-sm").attr('max','3600').attr('min','3')
+                .attr('type',"number")
+                .attr('value',me.magicDureeBefore).attr('id','secondeBefore'+m.idBody);
+            let inpA =  btnBlock.append('div').attr('class',"input-group");
+            inpA.append('div').attr('class',"input-group-text").html('s. après')
+            inpA.append('input').attr('class',"form-control form-control-sm").attr('max','3600').attr('min','3')
+                .attr('type',"number")
+                .attr('value',me.magicDureeAfter).attr('id','secondeAfter'+m.idBody);
         }
         function addMagicTrack(m){   
             if(!m.video)return;
-            let layer = me.timeliner.getLayer('name',me.magicTrackLabel+' : '+me.actant['o:title'])[0];
-
-            let dataTrack = {
-                'dcterms:title': "Magic Track",
+            let layer = me.timeliner.getLayer('name',me.magicTrackLabel+' : '+me.actant['o:title'])[0],
+            start = parseInt(document.getElementById('secondeBefore'+m.idBody).value),
+            end = parseInt(document.getElementById('secondeAfter'+m.idBody).value), 
+            dataTrack = {
+                'dcterms:title': "MT "+start+' '+end,
                 'schema:category': layer.id.split('_')[0],
-                'oa:start': parseInt(m.video.currentTime()),
-                'oa:end': parseInt(m.video.currentTime())+me.magicDuree,
+                'oa:start': parseInt(m.video.currentTime())-start,
+                'oa:end': parseInt(m.video.currentTime())+end,
                 'schema:color': 'red',
                 'oa:hasSource': m.idSource,
                 'oa:hasTarget': m.idTarget,
