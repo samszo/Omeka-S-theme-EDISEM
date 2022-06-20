@@ -27,6 +27,7 @@ function chargeScenario(e, d) {
         'actant':actant,    
         'urls': {
             'getItem':urlApi + '/items/',
+            'showChoix':urlSite + '/page/ajax?helper=Scenario&type=showChoix&json=1',
             'creaTrack':urlSite + '/page/ajax?helper=Scenario&type=saveTrack&json=1',
             'gen':urlSite + '/page/ajax?helper=Scenario&type=genereScenario&json=1&gen=fromUti',
             'del':urlSite + '/page/ajax?helper=Scenario&type=deleteScenario&json=1&item_id=',

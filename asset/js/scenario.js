@@ -143,11 +143,11 @@ class scenario {
 
             //dimensionne les block
             let main = d3.select('#mainContainer'), mainPosi = main.node().getBoundingClientRect()
-            me.heightEdit = window.innerHeight - mainPosi.top - (window.innerHeight / 3)-10;
+            me.heightEdit = window.innerHeight - mainPosi.top - (window.innerHeight / 3);
             me.height = window.innerHeight - mainPosi.top + (window.innerHeight / 3);
             me.width = mainPosi.width;
             main.style('height',me.height+'px');
-            d3.select('#mediaCards').style('height',me.heightEdit+'px');
+            //d3.select('#mediaCards').style('height',me.heightEdit+'px');
             //d3.select('#visuScenario').style('height',me.height+'px');          
             //d3.select('#graphScenario').style('height',me.height+'px');          
 
@@ -482,7 +482,7 @@ class scenario {
                             , fct: false
                             , title: e["dcterms:creator"][0]["o:title"]
                         }); 
-                        dbl[e["dcterms:creator"][0]["o:id"]]=1;
+                        dbl[e["dcterms:creator"][0]["o:id"]]={'nb':1,'i':dataReseau['nodes'].length-1};
                     }
                     //prendre uniquement les ressource liées
                     if(showRela){
@@ -497,7 +497,7 @@ class scenario {
                                             , txtColor: e._color
                                             , group: group
                                             , size: 5
-                                            , fct: false
+                                            , fct: {'click':me.showChoix}
                                             , title: v['o:title']
                                         }); 
                                         dbl[v['o:id']]={'nb':1,'i':dataReseau['nodes'].length-1};
@@ -686,7 +686,7 @@ class scenario {
                     //modifie la liste des tracks            
                     showListeTracks(me.mediaCards[idTarget])
                     //modifie le réseau                    
-                    me.mediaCards[idTarget].r.update(getDataReseau(me.mediaCards[idTarget].tracks));
+                    me.mediaCards[idTarget].r.update(getDataReseau(me.mediaCards[idTarget].tracks, false, true, false));
                     me.dataTime = me.timeliner.currentTimeStore.value;
                 }
             });
@@ -797,11 +797,12 @@ class scenario {
             let layer = me.timeliner.getLayer('name',me.magicTrackLabel+' : '+me.actant['o:title'])[0],
             start = parseInt(document.getElementById('secondeBefore'+m.idBody).value),
             end = parseInt(document.getElementById('secondeAfter'+m.idBody).value), 
+            ct = parseInt(m.video.currentTime()),
             dataTrack = {
-                'dcterms:title': "MT "+start+' '+end,
+                'dcterms:title': "MT "+m.idSource+'-'+m.idTarget+' : '+ct+' -'+start+' +'+end,
                 'schema:category': layer.id.split('_')[0],
-                'oa:start': parseInt(m.video.currentTime())-start,
-                'oa:end': parseInt(m.video.currentTime())+end,
+                'oa:start': ct-start,
+                'oa:end': ct+end,
                 'schema:color': 'red',
                 'oa:hasSource': m.idSource,
                 'oa:hasTarget': m.idTarget,
@@ -957,6 +958,26 @@ class scenario {
                 );
         }
         
+        this.showChoix = function(e, d) {
+            if(!d)return;
+            me.mdWait.open();
+            $.ajax({
+                    type: 'POST',
+                    dataType: 'json',
+                    url: me.urls.showChoix,
+                    data:{'qs':[d]}
+            }).done(function (choix) {
+                console.log(choix);
+            })
+            .always(function () {
+                me.mdWait.close();
+            })
+            .fail(function (e) {
+                throw new me.scenarioException(e);
+            });      
+        }
+
+
         this.editTrack = function(e, data, entry) {
             //initialisation des suggestions
             initSuggestions();
