@@ -11,6 +11,19 @@ class scenario {
         this.actant = params.actant ? params.actant : false;
         this.creators = [];
         this.urls = params.urls ? params.urls : false;
+        
+        this.mdSelection = new jBox('Modal', {
+            width: 480,
+            height: 384,
+            theme: 'TooltipDark',
+            overlay: false,
+            title: "Selection",
+            content: $('#mdSelection'),//ATTENTION le formulaire doit être ajouter à la page HTML
+            draggable: 'title',
+            repositionOnOpen: false,
+            repositionOnContent: false,
+        });
+
         this.mdWait = new jBox('Modal', {
             width: 200,
             height: 100,
@@ -253,7 +266,7 @@ class scenario {
             //constructions des datas;
             let dt = getDataReseau(me.timeliner.getAllEntry().filter(e=>e.timeEnd),false,false,true);
             if(!me.graphAll){
-                me.graphAll = new reseau({'cont':d3.select('#graphScenario')
+                me.graphAll = new reseau({'cont':d3.select('#graphCarto')
                     ,'width':me.width,'height':me.height
                     ,'legende':true
                     ,'data':dt
@@ -968,6 +981,8 @@ class scenario {
                     data:{'qs':[d]}
             }).done(function (choix) {
                 console.log(choix);
+                me.mdSelection.open();        
+
             })
             .always(function () {
                 me.mdWait.close();

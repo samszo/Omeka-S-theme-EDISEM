@@ -106,7 +106,9 @@ window.onload = initVisios;
       <div id="mainContainer" class="container pt-4">
         <div id="mediaCards" class="card-group" style="overflow-y: scroll;" ></div>
         <div id="visuScenario" class="row" style="display:none;background-color:white;" ></div>            
-        <div id="graphScenario" class="row" style="display:none;background-color:white;" ></div>            
+        <div id="graphScenario" class="row" style="display:none;background-color:white;" >
+          <div id="graphCarto" class="col" ></div>
+        </div>            
       </div>
 
 
@@ -120,3 +122,4 @@ window.onload = initVisios;
 import { Timeliner } from '<?php echo $this->assetUrl('js/timeliner/timeliner.js'); ?>'
 
 </script>
+<?php echo $this->partial('edisem/modal-selection');?>
