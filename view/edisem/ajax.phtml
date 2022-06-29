@@ -1,6 +1,7 @@
 <?php
 error_reporting(E_ERROR | E_PARSE);
 $helper = $this->params()->fromQuery('helper','');
+$vtt = $this->params()->fromQuery('vtt','');
 $log = $this->logger();
 
 switch ($helper) {
@@ -25,7 +26,11 @@ switch ($helper) {
         break;
     case 'Scenario':
         $scenario = $this->ScenarioFactory($this->params());
-        echo $this->json($scenario);                
+        if($vtt){
+            //header("Content-Type: text/plain");
+            header("Content-Type:text/vtt;charset=utf-8");
+            echo $scenario;
+        }else echo $this->json($scenario);                
     break;
     case "JDC":
         //gestion des dimensions avec le module JDC

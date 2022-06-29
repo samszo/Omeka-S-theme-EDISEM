@@ -1,0 +1,25 @@
+  
+  .player-container {
+    background: #1a1a1a;
+    overflow: auto;
+    width: 900px;
+    margin: 0 0 20px;
+  }
+  
+  .video-js {
+    float: left;
+  }
+  
+  .vjs-playlist,
+  .my-custom-class,
+  #my-custom-element {
+    float: left;
+    width: 300px;
+  }
+  
+  .vjs-playlist.vjs-playlist-horizontal {
+    float: none;
+    height: 120px;
+    width: 600px;
+  }
+  

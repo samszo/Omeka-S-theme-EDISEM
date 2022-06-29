@@ -28,7 +28,6 @@ $this->headScript()->appendFile($this->assetUrl('js/all.min.js'));//fontawesome
 $this->headScript()->appendFile($this->assetUrl('js/jquery-3.6.0.min.js'));
 $this->headScript()->appendFile($this->assetUrl('js/jBox.all.min.js'));
 $this->headScript()->appendFile($this->assetUrl('js/nouislider.min.js'));
-$this->headScript()->appendFile($this->assetUrl('js/video.min.js'));
 $this->headScript()->appendFile($this->assetUrl('js/edisem.js'));
 $this->headScript()->appendFile($this->assetUrl('js/typeahead.bundle.js'));
 $this->headScript()->appendFile($this->assetUrl('js/handlebars.min.js'));
@@ -36,6 +35,9 @@ $this->headScript()->appendFile($this->assetUrl('js/reseau.js'));
 $this->headScript()->appendFile($this->assetUrl('js/TagCloud.js'));
 $this->headScript()->appendFile($this->assetUrl('js/jdc/actants.js'));
 $this->headScript()->appendFile($this->assetUrl('js/sparnatural.js'));
+$this->headScript()->appendFile($this->assetUrl('node_modules/video.js/dist/video.js'));
+$this->headScript()->appendFile($this->assetUrl('node_modules/videojs-playlist/dist/videojs-playlist.js'));
+$this->headScript()->appendFile($this->assetUrl('node_modules/videojs-playlist-ui/dist/videojs-playlist-ui.js'));
 
 
 
@@ -43,11 +45,13 @@ $this->headScript()->appendFile($this->assetUrl('js/sparnatural.js'));
 $this->headLink()->prependStylesheet($this->assetUrl('css/user-bar.css', 'Omeka'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/bootstrap.min.css'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/cover.css'));
-$this->headLink()->appendStylesheet($this->assetUrl('css/video-js.min.css'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/jBox.all.min.css'));
 $this->headLink()->prependStylesheet($this->assetUrl('css/nouislider.min.css'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/sparnatural.css'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/edisem.css'));
+$this->headLink()->prependStylesheet($this->assetUrl('css/playlist.css'));
+$this->headLink()->prependStylesheet($this->assetUrl('node_modules/video.js/dist/video-js.css'));  
+$this->headLink()->prependStylesheet($this->assetUrl('node_modules/videojs-playlist-ui/dist/videojs-playlist-ui.css'));
 
 //pour l'autocompletion
 $this->headLink(array('rel'  => 'manifest','href' => $this->assetUrl('../manifest.json')));

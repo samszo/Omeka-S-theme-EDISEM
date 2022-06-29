@@ -13,8 +13,8 @@ class scenario {
         this.urls = params.urls ? params.urls : false;
         
         this.mdSelection = new jBox('Modal', {
-            width: 480,
-            height: 384,
+            width: 973,
+            height: 666,
             theme: 'TooltipDark',
             overlay: false,
             title: "Selection",
@@ -22,6 +22,7 @@ class scenario {
             draggable: 'title',
             repositionOnOpen: false,
             repositionOnContent: false,
+            onClose:function(){me.playerSelection.pause();}
         });
 
         this.mdWait = new jBox('Modal', {
@@ -89,6 +90,8 @@ class scenario {
         this.magicDureeBefore = params.magicDureeBefore ? params.magicDureeBefore : 3;
         this.magicDureeAfter = params.magicDureeAfter ? params.magicDureeAfter : 3;
         this.magicTrackLabel = params.magicTrackLabel ? params.magicTrackLabel : "Magic tracks";
+        this.playerSelection = videojs('playerSelection');//ATTENTION noeud présent dans modal-selection.phtml
+
     
         this.scenarioException = function(value) {
             this.value = value;
@@ -144,7 +147,7 @@ class scenario {
             timelinerInit();
 
             //supprime les données d'un scénario précédent
-            let medias = Array.prototype.slice.apply(document.querySelectorAll('audio,video'));
+            let medias = Array.prototype.slice.apply(me.conteneur.node().querySelectorAll('audio,video'));
             medias.forEach(m => {
                 videojs(m.playerId).dispose();
             });
@@ -979,8 +982,8 @@ class scenario {
                     dataType: 'json',
                     url: me.urls.showChoix,
                     data:{'qs':[d]}
-            }).done(function (choix) {
-                console.log(choix);
+            }).done(function (data) {
+                setPlayerPlayList(data)
                 me.mdSelection.open();        
 
             })
@@ -990,6 +993,57 @@ class scenario {
             .fail(function (e) {
                 throw new me.scenarioException(e);
             });      
+        }
+
+        function setPlayerPlayList(data){
+            //construction de la playlist
+            let pl = [], mSource, urlWebVTT;
+            data.forEach((d,i)=>{
+                //ATTENTION plusieurs medias sont possible quand fragment > 1 minute
+                if(d.medias){
+                    d.medias.forEach((m,i)=>{
+                        mSource = [{ src: m["o:original_url"], type: m["o:media_type"] }];
+                        urlWebVTT = me.urls.getWebVTT+'&idSrc='+d.idObj+'&numPos='+i;
+                        pl.push({
+                            name:d["oa:hasSource"][0]["o:title"],
+                            description:d['category'],
+                            duration:d.timeEnd-d.time,
+                            data:d,
+                            sources:mSource,
+                            thumbnail: [
+                                {
+                                src: d["oa:hasTarget"][0].thumbnail_display_urls.medium,
+                                media: '(max-width: 100px;)'
+                                }
+                            ],
+                            textTracks:[ { "kind":"subtitles", "label":"French", "src":urlWebVTT, "default":false } ]                    
+                        });    
+                    });
+                }else{
+                    mSource = [{ src: d["oa:hasTarget"][0]["o:original_url"], type: d["oa:hasTarget"][0]["o:media_type"] }];
+                    pl.push({
+                        name:d["oa:hasSource"][0]["o:title"],
+                        description:d['category'],
+                        duration:d.timeEnd-d.time,
+                        data:{id:d.idObj},
+                        sources:mSource,
+                        thumbnail: [
+                            {
+                            src: d["oa:hasTarget"][0].thumbnail_display_urls.medium,
+                            media: '(max-width: 100px;)'
+                            }
+                        ]                    
+                    });    
+                }
+            })
+            me.playerSelection.playlist(pl);
+            // Initialize the playlist-ui plugin with no option (i.e. the defaults).    
+            me.playerSelection.playlistUi({playOnSelect:true});
+            me.playerSelection.playlist.autoadvance(0);
+
+            me.playerSelection.textTracks()[0].mode = 'showing';
+            
+
         }
 
 

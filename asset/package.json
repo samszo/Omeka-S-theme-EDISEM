@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "videojs-playlist": "^5.0.0",
+    "videojs-playlist-ui": "^4.0.1"
+  }
+}
