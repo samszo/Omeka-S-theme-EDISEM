@@ -3,6 +3,7 @@ error_reporting(E_ERROR | E_PARSE);
 $helper = $this->params()->fromQuery('helper','');
 $vtt = $this->params()->fromQuery('vtt','');
 $log = $this->logger();
+$rs=null;
 
 switch ($helper) {
     case 'MagicTrack':
@@ -38,6 +39,26 @@ switch ($helper) {
         $rs = $this->JDCFactory(['user'=>$user,'params'=>$this->params()->fromPost()]);
         echo json_encode($rs,true);                
     break;
+    case "ChaoticumSeminario":
+        $params = $this->params()->fromQuery();
+        if($this->userIsAllowed(null,'create')){
+            $params['type']="setAleaFrag";
+            $track = $this->ScenarioFactory($params);
+            $params['media']=$track['media'];
+            $params['oItem']=$track['item'];
+            $params['frag']=$this->ChaoticumSeminarioFactory($params);
+            $params['service']='speachToText';        
+            $magic = $this->GoogleFactory($params);    
+            $rs = ['item'=>$params['frag'],'media'=>$params['frag']->media()[0],'magic'=>$magic[0]];
+        }else{
+            //récupère un fragment aléatoire            
+            $params['type']="getAleaFrag";
+            $rs=$this->ScenarioFactory($params);
+        }
+
+        echo json_encode($rs,true);                
+    break;
+
 }
 
 
