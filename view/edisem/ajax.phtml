@@ -64,10 +64,13 @@ switch ($helper) {
         echo json_encode($rs,true);                
     break;
     case "Google":
-        $params = $this->params()->fromQuery();
         //récupère le résultat du service            
-        $rs=$this->GoogleFactory($params);
+        $rs=$this->GoogleFactory($this->params()->fromQuery());
         echo json_encode($rs);                
+    break;
+    case "Query":
+        $rs=$this->QuerySqlFactory($this->params()->fromQuery());
+        echo json_encode($rs);                        
     break;
 
 }
