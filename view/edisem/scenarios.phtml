@@ -18,11 +18,11 @@ $rt =  $this->api()->search('resource_templates', ['label' => 'Scénario',])->ge
 $scenarios = $this->api()->search('items', ['resource_template_id'=>$rt->id(),'sort_by'=>'dcterms:date'])->getContent();
 
 $actant = false;
-if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$this->identity()]); 
+if ($allowCreate) $actant = $this->cartoAffect(['getActant' => true, 'user' => $this->identity()]);
 
 
 //récupère les suggestions
-$props=$this->ScenarioFactory(['type'=>'getRtSuggestion','label'=>'Indexation vidéo','urlApi'=>$this->url('api', [], true)]); 
+$props = $this->scenario(['type' => 'getRtSuggestion', 'label' => 'Indexation vidéo', 'urlApi' => $this->url('api', [], true)]);
 
 $this->headScript()->appendFile($this->assetUrl('js/scenario-ihm.js'));
 $this->headScript()->appendFile($this->assetUrl('js/scenario.js'));

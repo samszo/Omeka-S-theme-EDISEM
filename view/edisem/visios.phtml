@@ -16,7 +16,7 @@ $items = $this->api()->search('items', ['item_set_id'=>7204,'sort_by'=>'dcterms:
 $categories = $this->api()->search('items', ['item_set_id'=>8062,'sort_by'=>'dcterms:title'])->getContent();
 
 $actant = [];
-if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$this->identity()]); 
+if ($allowCreate) $actant = $this->cartoAffect(['getActant' => true, 'user' => $this->identity()]);
 
 
 ?>

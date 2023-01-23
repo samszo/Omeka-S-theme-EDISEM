@@ -11,24 +11,24 @@ switch ($helper) {
         //vérifie l'existence d'un fragment équivalent
         $params['ref'] = 'ChaoticumTrack_'.$params['oa:hasSource'].'_'.$params['oa:hasTarget'].'_'.$params['oa:start'].'_'.$params['oa:end'];
         $params['action'] = 'getMediaFragByRef';
-        $params['frag']=$this->ChaoticumSeminarioFactory($params);
+        $params['frag']=$this->chaoticumSeminario($params);
         if(!$params['frag']){
             //création de la track
-            $params['oItem']=$this->ScenarioFactory($this->params());
+            $params['oItem']=$this->scenario($this->params());
             //ajoute le fragment à la track
             $params['action'] = 'addMagicTrack';
-            $params['frag']=$this->ChaoticumSeminarioFactory($params);    
+            $params['frag']=$this->chaoticumSeminario($params);
             //extraction des mots clefs
-            $params['service']='speachToText';        
-            $magic = $this->GoogleFactory($params);
-            $params['type']='getTimelinerTrack';        
-            echo json_encode($this->ScenarioFactory($params));
+            $params['service']='speechToText';
+            $magic = $this->google($params);
+            $params['type']='getTimelinerTrack';
+            echo json_encode($this->scenario($params));
         }
         break;
 
     case 'Scenario':
-        $scenario = $this->ScenarioFactory($this->params());
-        if($vtt){
+        $scenario = $this->scenario($this->params());
+        if ($vtt) {
             //header("Content-Type: text/plain");
             header("Content-Type:text/vtt;charset=utf-8");
             echo $scenario;
@@ -40,42 +40,43 @@ switch ($helper) {
     case "JDC":
         //gestion des dimensions avec le module JDC
         $user = $this->identity();
-        $rs = $this->JDCFactory(['user'=>$user,'params'=>$this->params()->fromPost()]);
-        echo json_encode($rs,true);                
-    break;
+        $rs = $this->jdc(['user'=>$user,'params'=>$this->params()->fromPost()]);
+        echo json_encode($rs,true);
+        break;
+
     case "ChaoticumSeminario":
         //http://localhost/omk_arcanes/s/edisem/page/ajax?helper=ChaoticumSeminario&action=setAllFrag&json=1&idMedia=13074
         $params = $this->params()->fromQuery();
         if($this->userIsAllowed(null,'create')){
             $params['type']=$params['action'];
-            $track = $this->ScenarioFactory($params);
-            if(isset($track['error'])){
+            $track = $this->scenario($params);
+            if (isset($track['error'])){
                 $rs =$track;
             } else {
                 $params['media']=$track['media'];
                 $params['oItem']=$track['item'];
-                $params['frag']=$this->ChaoticumSeminarioFactory($params);
-                $params['service']='speachToText';        
-                $magic = $this->GoogleFactory($params);    
-                $rs = ['item'=>$params['frag'],'media'=>$params['frag']->media()[0],'magic'=>$magic[0]];    
-            } 
-        }else{
-            //récupère un fragment aléatoire            
+                $params['frag']=$this->chaoticumSeminario($params);
+                $params['service']='speachToText';
+                $magic = $this->google($params);
+                $rs = ['item'=>$params['frag'],'media'=>$params['frag']->media()[0],'magic'=>$magic[0]];
+            }
+        } else {
+            //récupère un fragment aléatoire
             $params['type']="getAleaFrag";
-            $rs=$this->ScenarioFactory($params);
+            $rs=$this->scenario($params);
         }
 
         echo json_encode($rs,true);
         break;
 
     case "Google":
-        //récupère le résultat du service            
-        $rs=$this->GoogleFactory($this->params()->fromQuery());
-        echo json_encode($rs);                
-    break;
-    case "Query":
-        $rs=$this->QuerySqlFactory($this->params()->fromQuery());
-        echo json_encode($rs);                        
-    break;
+        //récupère le résultat du service
+        $rs=$this->google($this->params()->fromQuery());
+        echo json_encode($rs);
+        break;
 
+    case "Query":
+        $rs=$this->querySql($this->params()->fromQuery());
+        echo json_encode($rs);
+        break;
 }
