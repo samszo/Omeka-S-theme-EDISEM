@@ -25,14 +25,18 @@ switch ($helper) {
             echo json_encode($this->ScenarioFactory($params));
         }
         break;
+
     case 'Scenario':
         $scenario = $this->ScenarioFactory($this->params());
         if($vtt){
             //header("Content-Type: text/plain");
             header("Content-Type:text/vtt;charset=utf-8");
             echo $scenario;
-        }else echo $this->json($scenario);                
-    break;
+        } else {
+            echo $this->json($scenario);
+        }
+        break;
+
     case "JDC":
         //gestion des dimensions avec le module JDC
         $user = $this->identity();
@@ -47,7 +51,7 @@ switch ($helper) {
             $track = $this->ScenarioFactory($params);
             if(isset($track['error'])){
                 $rs =$track;
-            }else{
+            } else {
                 $params['media']=$track['media'];
                 $params['oItem']=$track['item'];
                 $params['frag']=$this->ChaoticumSeminarioFactory($params);
@@ -61,8 +65,9 @@ switch ($helper) {
             $rs=$this->ScenarioFactory($params);
         }
 
-        echo json_encode($rs,true);                
-    break;
+        echo json_encode($rs,true);
+        break;
+
     case "Google":
         //récupère le résultat du service            
         $rs=$this->GoogleFactory($this->params()->fromQuery());
@@ -74,9 +79,3 @@ switch ($helper) {
     break;
 
 }
-
-
-?>
-
-
-

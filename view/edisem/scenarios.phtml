@@ -38,14 +38,14 @@ if($idScenario){
       switch ($m->displayTitle()) {
           case 'script':
             $this->headScript()->appendFile($m->originalUrl());
-            break;                
+            break;
       }
-  }  
+  }
 }
 
 
 
-/*récupère le resource template pour avoir la définition des suggestions 
+/*récupère le resource template pour avoir la définition des suggestions
 $props=[];
 $rt = $this->api()->read('resource_templates', ['label' => 'Indexation vidéo'])->getContent();
 $rtp = $rt->resourceTemplateProperties();
@@ -75,11 +75,11 @@ $o=1;
 ?>
 <script>
 
-const itemsScenario = <?php echo json_encode($scenarios); ?>    
+const itemsScenario = <?php echo json_encode($scenarios); ?>
 
-    , actant = <?php echo json_encode($actant); ?>    
+    , actant = <?php echo json_encode($actant); ?>
 
-    , sgtProps = <?php echo json_encode($props); ?>    
+    , sgtProps = <?php echo json_encode($props); ?>
 
 
     , urlApi = '<?php echo $this->url('api', [], true); ?>'
@@ -97,7 +97,7 @@ window.onload = initVisios;
   <div class="row">
     <div class="col bg-secondary text-white p-2">
       <?php echo $this->partial('edisem/tb-scenarios', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);?>
-      <?php 
+      <?php
       if($isAdmin){
         echo $this->partial('edisem/form-ajout-layer');
         echo $this->partial('edisem/form-edit-track', ['isAdmin'=>$isAdmin,'allowCreate'=>$allowCreate]);
@@ -106,10 +106,10 @@ window.onload = initVisios;
       ?>
       <div id="mainContainer" class="container pt-4">
         <div id="mediaCards" class="card-group" style="overflow-y: scroll;" ></div>
-        <div id="visuScenario" class="row" style="display:none;background-color:white;" ></div>            
+        <div id="visuScenario" class="row" style="display:none;background-color:white;" ></div>
         <div id="graphScenario" class="row" style="display:none;background-color:white;" >
           <div id="graphCarto" class="col" ></div>
-        </div>            
+        </div>
       </div>
 
 
