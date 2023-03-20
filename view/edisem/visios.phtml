@@ -16,7 +16,7 @@ $items = $this->api()->search('items', ['item_set_id'=>7204,'sort_by'=>'dcterms:
 $categories = $this->api()->search('items', ['item_set_id'=>8062,'sort_by'=>'dcterms:title'])->getContent();
 
 $actant = [];
-if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$this->identity()]); 
+if ($allowCreate) $actant = $this->cartoAffect(['getActant' => true, 'user' => $this->identity()]);
 
 
 ?>
@@ -35,11 +35,11 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
 </div>
 
 <script>
-    const itemsSem = <?php echo json_encode($items); ?>    
+    const itemsSem = <?php echo json_encode($items); ?>
 
-        , itemsCat = <?php echo json_encode($categories); ?>    
+        , itemsCat = <?php echo json_encode($categories); ?>
 
-        , actant = <?php echo json_encode($actant); ?>    
+        , actant = <?php echo json_encode($actant); ?>
 
         , urlApi = '<?php echo $this->url('api', [], true); ?>'
         , urlAdmin = '<?php echo $this->url('admin', [], true); ?>'
@@ -52,7 +52,7 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
         //ajoute la liste des séminaires
         showListeSeminaire();
         //ajoute la liste des catégories
-        setCategoriesRadio();        
+        setCategoriesRadio();
     }
 
 
@@ -60,10 +60,10 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
     d3.select('#btncheckTimeliner').on('click',function(e){
         if(e.currentTarget.checked)showTimeliner();
         else timeliner.hide();
-    });   
+    });
     d3.select('#btnIMajout').on('click',function(e){
         saveIndex();
-    });       
+    });
     d3.select('#btnIMmodif').on('click',function(e){
         saveIndex(true);
     });
@@ -83,7 +83,7 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
       d3.select('#inputIMfinPlay').style('display','inline');
       d3.select('#inputIMfinStop').style('display','none');
     });
-           
+
 
     //gestion du slider debut fin
     var sliderIndexStartEnd = document.getElementById('slider-startend');
@@ -109,7 +109,7 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
         dateValues[handle].value = values[handle];
     });
 
-  //fonction spécifiques à la page  
+  //fonction spécifiques à la page
   function saveIndex(modif){
     if(!currentSource){
       let n = new jBox('Notice', {
@@ -131,10 +131,10 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
     }
 
     //récupère les données saisies
-    let c, cats = document.getElementsByName('radioCat');  
-    for (var check of cats) {  
-      if (check.checked)c=check.value;  
-    }  
+    let c, cats = document.getElementsByName('radioCat');
+    for (var check of cats) {
+      if (check.checked)c=check.value;
+    }
     let dataIndex = {
       'dcterms:title':document.getElementById('inputIMtitre').value,
       'dcterms:description':document.getElementById('inputIMdesc').value,
@@ -155,8 +155,8 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
             data: dataIndex
         }).done(function (data) {
           console.log(data);
-          document.getElementById('idIndex').value=data['o:id']; 
-          document.getElementById('btnIMmodif').disabled=false;                  
+          document.getElementById('idIndex').value=data['o:id'];
+          document.getElementById('btnIMmodif').disabled=false;
         })
         .fail(function (e) {
           console.log(e);
@@ -170,7 +170,7 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
       timeliner.show('dock-bottom-sam');
       animate();
       d3.select('#btncheckTimeliner').node().checked=true;
-     
+
     }
 
     function checkExecute(e){
@@ -182,7 +182,7 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
                 //target: '#'+e.currentTarget.id,
                 position: {y: window.innerHeight/2, x: window.innerWidth/2}
             });
-            e.currentTarget.checked = false;            
+            e.currentTarget.checked = false;
             check = false;
       }
       return check;
@@ -213,7 +213,7 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
             .style("background-color",c=>c['schema:color'][0]['@value'])
             .style("margin-left","8px")
             .html('&nbsp;&nbsp;&nbsp;');
-            
+
     }
 
     function showListeSeminaire(){
@@ -234,7 +234,7 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
                 d.titre = d["bibo:shortTitle"][0]["@value"]+' '+d["dcterms:date"][0]["@value"];
                 d.adminUrl = urlAdmin+'/item/'+d['o:id'];
                 d.siteUrl = urlSite+'/item/'+d['o:id'];
-                d.fctCloseDetail = closeDetail                
+                d.fctCloseDetail = closeDetail
                 return d.titre;
             });
 
@@ -282,14 +282,14 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
     }
     function getListeMedia(){
       //charges les média des items sélectionnés
-      mdWait.open();      
+      mdWait.open();
       let jsons = [];
       for (const sem in semSelect) {
         jsons.push(d3.json(urlApi+'/media?item_id='+semSelect[sem]['o:id']));
       }
       Promise.all(jsons).then(function(values) {
         showListeMedia(values);
-        mdWait.close();      
+        mdWait.close();
       });
     }
     function showListeMedia(results){
@@ -300,7 +300,7 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
         ms.forEach(m=>{
           if(!doublons[m['o:id']])medias.push(m);
           doublons[m['o:id']]=true;
-        });          
+        });
       });
       d3.select('#ddmListeMedia').selectAll('li').remove();
       d3.select('#ddmListeMedia').selectAll('li').data(medias).join().append('li').append('a')
@@ -311,20 +311,20 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
           .on('click',showMedia);
       /*charge le premier media
       if(medias.length)showMedia(null,medias[0]);
-      else visioPlayer.src(null); 
+      else visioPlayer.src(null);
       */
     }
 
     function getListeScenario(){
       //charges les scénarios des items sélectionnés
-      mdWait.open();      
+      mdWait.open();
       let jsons = [];
       for (const sem in semSelect) {
         jsons.push(d3.json(urlSite+'/page/ajax?helper=Scenario&type=getListeFromItem&json=1&item_id='+semSelect[sem]['o:id']));
       }
       Promise.all(jsons).then(function(values) {
         showListeScenario(values);
-        mdWait.close();      
+        mdWait.close();
       });
     }
 
@@ -334,7 +334,7 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
         r.forEach(s=>{
           if(!doublons[s['o:id']])scenarios.push(s);
           doublons[s['o:id']]=true;
-        });          
+        });
       });
 
       d3.select('#ddmListeScenario').selectAll('li').remove();
@@ -347,13 +347,13 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
     }
     function chargeScenario(e,d){
       /*récupère les indexations
-      plus nécessaire car tous est dans les details 
+      plus nécessaire car tous est dans les details
       d3.json(urlSite+'/page/ajax?helper=Scenario&type=getIndexFromScenario&json=1&item_id='+scenario['o:id']).then(function(data){
         d.indexVideo = data;
         timeliner.load(scenario.details);
         showTimeliner();
       });
-      */      
+      */
       if(!d.details)d.details=JSON.parse(d['schema:object'][0]['@value']);
       scenario=d;
       showTimeliner();
@@ -379,7 +379,7 @@ if($allowCreate)$actant=$this->CartoAffectFactory(['getActant'=>true,'user'=>$th
           //récupère les indexations
 
         }else showDetails(mediaCards[d['o:id']]);
-       
+
 
     }
 
@@ -395,8 +395,8 @@ function animate() {
       s = p.s;
       switch (p.prop) {
         case 'omk_videoIndex':
-          joinVideoIndex(o,p.action);					
-          break;			
+          joinVideoIndex(o,p.action);
+          break;
       }
     }
 	}
@@ -437,20 +437,20 @@ function createMediaCard(d){
   let m={};
   m.card = d3.select("#mediaCards").append("div")
       .attr('id','cardVideo'+d.idTarget)
-      .attr("class", "card text-white bg-dark");      
+      .attr("class", "card text-white bg-dark");
 
   /*carte vidéo haut annotation bas
   appendVideoToMediaCard(m, d, m.card.append('video'));
   m.body = m.card.append('div')
     .attr("class", "card-body");
   */
-  
+
   //carte annotation droite vidéo gauche
-  let rowCard = m.card.append('div').attr('class','row g-0');  
-  let colAnno = rowCard.append('div').attr('class','col-md-6');  
+  let rowCard = m.card.append('div').attr('class','row g-0');
+  let colAnno = rowCard.append('div').attr('class','col-md-6');
   m.body = colAnno.append('div')
-    .attr("class", "card-body");  
-  let colVideo = rowCard.append('div').attr('class','col-md-6');  
+    .attr("class", "card-body");
+  let colVideo = rowCard.append('div').attr('class','col-md-6');
   appendVideoToMediaCard(m, d, colVideo.append('video'));
 
   //construction du body
@@ -488,7 +488,7 @@ function appendVideoToMediaCard(m, d, v){
                   'min': 0,
                   'max': m.video.duration()
               }
-          });        
+          });
 
         })
         .catch(error => {
@@ -506,10 +506,10 @@ function appendVideoToMediaCard(m, d, v){
     if(stopDeb!='none')posis[0]=ct;
     if(stopFin!='none')posis[1]=ct;
     sliderIndexStartEnd.noUiSlider.updateOptions({
-          start: posis,        
-      });        
+          start: posis,
+      });
    });
-  
+
 }
 function getChildrenIds(s){
   let ids = [];
@@ -554,7 +554,7 @@ function getIndex(id,key){
   return scenario.indexVideo[key].filter(i=>i["o:id"]==id)[0];
 }
 function getDetail(id,key){
-  let l = scenario.details.layers.filter(l=>l.name==key)[0]; 
+  let l = scenario.details.layers.filter(l=>l.name==key)[0];
   return l.values.filter(v=>v.idObj==id)[0];
 }
 
